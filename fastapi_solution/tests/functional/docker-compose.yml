@@ -1,0 +1,45 @@
+version: '3.8'
+services:
+
+  fastapi:
+    build: ../../.
+    image: fastapi-image
+    env_file:
+      - ./.env
+    depends_on:
+      - elastic_test
+      - redis_test
+    restart: always
+    ports:
+      - 8001:80
+  
+  elastic_test:
+    image: elasticsearch:8.5.0
+    restart: always
+    env_file:
+      - ./.env
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - 9201:9200
+
+  redis_test:
+    container_name: redis_test
+    image: redis:7-alpine
+    restart: always
+    env_file:
+      - ./.env
+    ports:
+      - 6378:6379
+
+  tests:
+    image: fastapi-image
+    env_file:
+      - ./.env
+    entrypoint: >
+      sh -c "python3 /tests/functional/utils/wait_for_es.py
+      && python3 /tests/functional/utils/wait_for_redis.py
+      && pytest /tests/functional/src"
+    depends_on:
+      - fastapi

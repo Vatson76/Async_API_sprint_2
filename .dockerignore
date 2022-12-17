@@ -1,0 +1,11 @@
+.vscode/
+venv/
+setup.cfg
+__pycache__/
+.git/
+.gitignore
+admin_service/movies/management/commands/db.sqlite
+states.json
+db
+elastic_data
+redis_data

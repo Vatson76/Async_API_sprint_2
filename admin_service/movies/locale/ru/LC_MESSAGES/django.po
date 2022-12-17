@@ -1,0 +1,157 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-12-02 09:41+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n"
+"%100>=11 && n%100<=14)? 2 : 3);\n"
+
+#: movies/admin.py:25
+msgid "Filmwork's genre"
+msgstr "Жанр кинопроизведения"
+
+#: movies/admin.py:26
+msgid "Filmwork's genres"
+msgstr "Жанры кинопроизведения"
+
+#: movies/admin.py:32
+msgid "Person in filmwork"
+msgstr "Участник фильма"
+
+#: movies/admin.py:33
+msgid "People in filmwork"
+msgstr "Съемочная группа"
+
+#: movies/admin.py:57 movies/models.py:77
+msgid "genres"
+msgstr "Жанры"
+
+#: movies/admin.py:63 movies/models.py:78
+msgid "persons"
+msgstr "Участники"
+
+#: movies/apps.py:8
+msgid "movies"
+msgstr "Фильмы"
+
+#: movies/models.py:25
+msgid "actor"
+msgstr "Актер"
+
+#: movies/models.py:26
+msgid "director"
+msgstr "Режиссер"
+
+#: movies/models.py:27
+msgid "writer"
+msgstr "Сценарист"
+
+#: movies/models.py:31 movies/models.py:65
+msgid "title"
+msgstr "Название"
+
+#: movies/models.py:32 movies/models.py:66
+msgid "description"
+msgstr "Описание"
+
+#: movies/models.py:37
+msgid "genre_verbose_name"
+msgstr "Жанр"
+
+#: movies/models.py:38
+msgid "genre_verbose_name_plural"
+msgstr "Жанры"
+
+#: movies/models.py:50
+msgid "genre_filmwork_verbose_name"
+msgstr "Жанр кинопропроизведения"
+
+#: movies/models.py:51
+msgid "genre_filmwork_verbose_name_plural"
+msgstr "Жанры кинопропроизведения"
+
+#: movies/models.py:62
+msgid "movie_choice"
+msgstr "Фильм"
+
+#: movies/models.py:63
+msgid "tv_show_choice"
+msgstr "ТВ-шоу"
+
+#: movies/models.py:67
+msgid "type"
+msgstr "Тип"
+
+#: movies/models.py:68
+msgid "creation_date"
+msgstr "Дата премьеры"
+
+#: movies/models.py:71
+msgid "rating"
+msgstr "Рейтинг"
+
+#: movies/models.py:73
+msgid "Rating should be greater than 0"
+msgstr "Рейтинг должен быть больше 0"
+
+#: movies/models.py:74
+msgid "Rating should be less than 100"
+msgstr "Рейтинг должен быть меньше 100"
+
+#: movies/models.py:79
+msgid "certificate"
+msgstr "Сертификат"
+
+#: movies/models.py:80
+msgid "file"
+msgstr "Файл"
+
+#: movies/models.py:84
+msgid "filmwork_verbose_name"
+msgstr "Кинопроизведение"
+
+#: movies/models.py:85
+msgid "filmwork_verbose_name_plural"
+msgstr "Кинопроизведения"
+
+#: movies/models.py:92
+msgid "male"
+msgstr "Мужчина"
+
+#: movies/models.py:93
+msgid "female"
+msgstr "Женщина"
+
+#: movies/models.py:97
+msgid "full_name"
+msgstr "Полное имя"
+
+#: movies/models.py:99
+msgid "gender"
+msgstr "Пол"
+
+#: movies/models.py:103
+msgid "person_verbose_name"
+msgstr "Участник"
+
+#: movies/models.py:104
+msgid "person_verbose_name_plural"
+msgstr "Съёмочная группа"
+
+#: movies/models.py:113
+msgid "role"
+msgstr "Роль"

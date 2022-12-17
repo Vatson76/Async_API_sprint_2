@@ -1,0 +1,95 @@
+version: '3.8'
+services:
+
+  postgres:
+    image: postgres:14.5
+    container_name: "database"
+    volumes:
+      - ./db:/var/lib/postgresql/data
+      - ./dbscripts/:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+    env_file:
+      - .env
+
+  elastic:
+    image: elasticsearch:7.9.1
+    container_name: "elastic"
+    volumes:
+      - ./elastic_data:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    healthcheck:
+      test: curl -u elastic:elastic -s -f elastic:9200/_cat/health >/dev/null || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis
+    container_name: aioredis
+    healthcheck:
+      test: [ "CMD", "redis-cli","ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  fastapi:
+    container_name: fastapi
+    build:
+      context: ./fastapi_solution
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elastic:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  admin:
+    build:
+      context: ./admin_service
+    container_name: admin
+    volumes:
+      - ./admin_service/static:/opt/app/static
+    restart:
+      always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+
+  etl:
+    container_name: etl
+    build:
+      context: ./etl_service
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elastic:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:1.19.2
+    container_name: nginx
+    volumes:
+      - ./etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./etc/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./admin_service/static:/web/http/static
+    depends_on:
+      - admin
+      - fastapi
+    ports:
+      - "80:80"
