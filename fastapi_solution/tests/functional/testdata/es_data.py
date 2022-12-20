@@ -1,18 +1,45 @@
-data_movie = [{
-    'id': 'test4679-1f5e-4cbd-8044-d13d35d5236c',
-    'title': 'test_movie',
-    'imdb_rating': 6.7,
-    'genres': [],
-    'genre': [],
-    'description': 'test_description',
-    'director': ['Test Director'],
-    'actors_names': [],
-    'writers_names': [],
-    'directors':[{
-        'id': 'testf573-3cee-4ccc-8a2b-91cb9f55250a',
-        'name': 'Test Director'
-    }],
-    'actors': [],
-    'writers': [],
-    'modiied': '2021-06-16T20:14:09.244681+00:00'
-}]
+import uuid
+from datetime import datetime
+
+movies_data = [{
+        'id': str(uuid.uuid4()),
+        'imdb_rating': 8.5,
+        'genre': ['Action', 'Sci-Fi'],
+        'title': 'The Star',
+        'description': 'New World',
+        'director': ['Stan'],
+        'actors_names': ['Ann', 'Bob'],
+        'writers_names': ['Ben', 'Howard'],
+        'actors': [
+            {'id': '111', 'name': 'Ann'},
+            {'id': '222', 'name': 'Bob'}
+        ],
+        'writers': [
+            {'id': '333', 'name': 'Ben'},
+            {'id': '444', 'name': 'Howard'}
+        ],
+        'created_at': datetime.now().isoformat(),
+        'updated_at': datetime.now().isoformat(),
+        'film_work_type': 'movie'
+    } for _ in range(20)] + [
+    {
+        'id': str(uuid.uuid4()),
+        'imdb_rating': 8.5,
+        'genre': ['Action', 'Western'],
+        'title': 'Django',
+        'description': 'blackguy',
+        'director': ['Me'],
+        'actors_names': ['Dan', 'Dick'],
+        'writers_names': ['Lesly', 'Olga'],
+        'actors': [
+            {'id': '111', 'name': 'Dan'},
+            {'id': '222', 'name': 'Dick'}
+        ],
+        'writers': [
+            {'id': '333', 'name': 'Lesly'},
+            {'id': '444', 'name': 'Olga'}
+        ],
+        'created_at': datetime.now().isoformat(),
+        'updated_at': datetime.now().isoformat(),
+        'film_work_type': 'movie'
+    } for _ in range(20)]

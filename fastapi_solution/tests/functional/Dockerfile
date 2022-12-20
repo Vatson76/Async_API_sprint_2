@@ -1,9 +1,9 @@
 FROM python:3.8-slim-buster
 
-WORKDIR /tests
+WORKDIR /tests/functional
 
-COPY ./tests/functional/requirements.txt ./
+COPY requirements.txt ./
 RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
 
-COPY ./tests .
+COPY . .
