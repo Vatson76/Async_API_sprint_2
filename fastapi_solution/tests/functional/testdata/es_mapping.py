@@ -134,9 +134,6 @@ movies_index = {
               "analyzer": "ru_en"
             }
           }
-        },
-        "modified": {
-          "type": "date"
         }
       }
     }

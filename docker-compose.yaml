@@ -41,6 +41,7 @@ services:
 
   fastapi:
     container_name: fastapi
+    image: fastapi_image
     build:
       context: ./fastapi_solution
     env_file:
