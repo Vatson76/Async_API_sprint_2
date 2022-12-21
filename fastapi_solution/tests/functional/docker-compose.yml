@@ -2,6 +2,7 @@ version: '3.8'
 services:
 
   fastapi_test:
+    build: ../../.
     image: fastapi-image
     env_file:
       - .env
