@@ -43,23 +43,3 @@ def backoff(start_sleep_time: Union[int, float] = 0.1, factor: int = 2, border_s
             return connection
         return inner
     return func_wrapper
-
-
-def gendata(data: List[dict], index: str) -> Generator:
-    """Generates structure of the index documents."""
-    for row in data:
-        yield {
-            '_index': index,
-            '_id': row['id'],
-            '_source': row
-        }
-
-
-def delete_docs(docs: List[dict], index: str) -> Generator:
-    """Deletes list of documents in index."""
-    for doc in docs:
-        yield {
-            '_op_type': 'delete',
-            '_index': index,
-            '_id': doc['id'],
-        }

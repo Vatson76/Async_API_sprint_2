@@ -4,12 +4,12 @@ import aiohttp
 import aioredis
 import asyncio
 import pytest
-from elasticsearch import AsyncElasticsearch, helpers
+import pytest_asyncio
+from elasticsearch import AsyncElasticsearch
 from pydantic import BaseModel
 
-from testdata.es_data import movies_data
-from utils.helpers import gendata, delete_docs
-from testdata.es_mapping import movies_index
+from testdata.es_data import movies_data, persons_data
+from testdata.es_mapping import movies_index, persons_index
 from settings import test_settings
 
 
@@ -19,15 +19,38 @@ class HTTPResponse(BaseModel):
     status: int
 
 
-@pytest.fixture(scope='session')
-async def es_client_maker():
-    client = AsyncElasticsearch(hosts=[test_settings.ELASTIC_DSN.hosts])
-    yield client
-    await client.close()
+@pytest.fixture(scope="session")
+def event_loop():
+    """Overrides pytest default function scoped event loop"""
+    policy = asyncio.get_event_loop_policy()
+    loop = policy.new_event_loop()
+    yield loop
+    loop.close()
 
 
-@pytest.fixture(scope='session')
-async def redis_client_maker():
+async def write_data_to_elastic(es_client: AsyncElasticsearch, index: dict, data: dict):
+    index_name = index['index']
+    if not await es_client.indices.exists(index=index_name):
+        await es_client.indices.create(index_name, index['body'])
+    bulk_query = []
+    for row in data:
+        action = {"index": {"_index": index_name, "_id": row["id"]}}
+        doc = row
+        bulk_query.append(action)
+        bulk_query.append(doc)
+    response = await es_client.bulk(bulk_query, index_name, refresh=True)
+    if response['errors']:
+        raise Exception('Ошибка записи данных в Elasticsearch')
+
+
+@pytest_asyncio.fixture(scope='session', autouse=True)
+async def es_client():
+    async with AsyncElasticsearch(hosts=[test_settings.ELASTIC_DSN.hosts]) as client:
+        yield client
+
+
+@pytest_asyncio.fixture(scope='session', autouse=True)
+async def redis_client():
     client = await aioredis.from_url(
         test_settings.REDIS_URL,
         encoding="utf-8",
@@ -35,11 +58,6 @@ async def redis_client_maker():
     )
     yield client
     client.close()
-
-
-# @pytest.fixture(scope='session')
-# def session():
-#     return aiohttp.ClientSession()
 
 
 @pytest.fixture
@@ -59,21 +77,11 @@ def make_get_request():
     return inner
 
 
-@pytest.fixture(scope='session', autouse=True)
-async def es_write_filmworks(es_client_maker):
-    index = movies_index['index']
-    async for es_client in es_client_maker:
-        if not await es_client.indices.exists(index=index):
-            await es_client.indices.create(index, movies_index['body'])
-        bulk_query = []
-        delete_bulk_query = []
-        for row in movies_data:
-            action = {"index": {"_index": index, "_id": row["id"]}}
-            delete_action = {"delete": {"_index": index, "_id": row["id"]}}
-            doc = row
-            bulk_query.append(action)
-            bulk_query.append(doc)
-            delete_bulk_query.append(delete_action)
-        response = await es_client.bulk(bulk_query, index, refresh=True)
-        if response['errors']:
-            raise Exception('Ошибка записи данных в Elasticsearch')
+@pytest_asyncio.fixture(scope='session', autouse=True)
+async def es_write_filmworks(es_client):
+    await write_data_to_elastic(es_client, movies_index, movies_data)
+
+
+@pytest_asyncio.fixture(scope='session', autouse=True)
+async def es_write_persons(es_client):
+    await write_data_to_elastic(es_client, persons_index, persons_data)

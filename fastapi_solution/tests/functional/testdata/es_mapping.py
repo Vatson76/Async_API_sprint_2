@@ -139,3 +139,68 @@ movies_index = {
     }
   }
 }
+
+persons_index = {
+  "index": "persons",
+  "body": {
+    "settings": settings,
+    "mappings": {
+      "dynamic": "strict",
+      "properties": {
+        "id": {
+          "type": "keyword"
+        },
+        "name": {
+          "type": "text",
+          "analyzer": "ru_en"
+        },
+        "film_ids": {
+          "type": "text",
+        },
+        "films": {
+          "type": "nested",
+          "dynamic": "strict",
+          "properties": {
+            "id": {
+              "type": "keyword"
+            },
+            "title": {
+              "type": "text",
+              "analyzer": "ru_en"
+            },
+            "imdb_rating": {
+              "type": "float"
+            },
+          }
+        },
+        "roles": {
+          "type": "text",
+          "analyzer": "ru_en"
+        },
+      }
+    }
+  }
+}
+
+genres_index = {
+  "index": "genres",
+  "body": {
+    "settings": settings,
+    "mappings": {
+      "dynamic": "strict",
+      "properties": {
+        "id": {
+          "type": "keyword"
+        },
+        "name": {
+          "type": "text",
+          "analyzer": "ru_en"
+        },
+        "description": {
+          "type": "text",
+          "analyzer": "ru_en"
+        },
+      }
+    }
+  }
+}

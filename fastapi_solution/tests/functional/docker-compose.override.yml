@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+
+  fastapi_test:
+    ports:
+      - "81:80"
+
+  elastic_test:
+    ports:
+      - "9201:9200"
+
+  redis_test:
+    ports:
+      - "63792:6379"
