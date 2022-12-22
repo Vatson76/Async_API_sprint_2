@@ -8,8 +8,8 @@ import pytest_asyncio
 from elasticsearch import AsyncElasticsearch
 from pydantic import BaseModel
 
-from testdata.es_data import movies_data, persons_data
-from testdata.es_mapping import movies_index, persons_index
+from testdata.es_data import genres_data, movies_data, persons_data
+from testdata.es_mapping import genres_index, movies_index, persons_index
 from settings import test_settings
 
 
@@ -85,3 +85,8 @@ async def es_write_filmworks(es_client):
 @pytest_asyncio.fixture(scope='session', autouse=True)
 async def es_write_persons(es_client):
     await write_data_to_elastic(es_client, persons_index, persons_data)
+
+
+@pytest_asyncio.fixture(scope='session', autouse=True)
+async def es_write_genres(es_client):
+    await write_data_to_elastic(es_client, genres_index, genres_data)
