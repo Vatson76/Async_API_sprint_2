@@ -1,10 +1,9 @@
 import json
 import random
 import uuid
-
-import pytest
 from http import HTTPStatus
 
+import pytest
 from testdata.es_data import genres_data
 
 

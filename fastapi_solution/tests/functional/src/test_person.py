@@ -1,11 +1,10 @@
 import json
 import random
 import uuid
-
-import pytest
 from http import HTTPStatus
 
-from testdata.es_data import persons_data, persons_movies, person
+import pytest
+from testdata.es_data import person, persons_data, persons_movies
 
 
 @pytest.mark.asyncio
@@ -29,7 +28,7 @@ async def test_get_one_person(make_get_request, redis_client):
     cache = await redis_client.get(person_id)
     assert cache
 
-#поиск фильмов персоны по id, не работает
+
 @pytest.mark.asyncio
 async def test_persons_films_by_id(make_get_request, es_client):
     movie_id = uuid.UUID(persons_movies.get('id'))
@@ -38,7 +37,9 @@ async def test_persons_films_by_id(make_get_request, es_client):
     await es_client.create('movies', movie_id, persons_movies)
     response = await make_get_request(f"/persons/{person_id}/film")
     assert response.status == HTTPStatus.OK
-    assert response.body.get('film') == person.get('films')
+    person_films = person.get('films')[0]
+    assert response.body[0].get('id') == person_films.get('id')
+    assert response.body[0].get('title') == person_films.get('title')
 
 
 @pytest.mark.parametrize("page, page_size, expected_count", [
