@@ -80,7 +80,7 @@ genres_data = [{
 } for _ in range(20)]
 
 persons_movies = {
-        'id': '00904987654',
+        'id': '724c72b9-dcfd-435f-8547-bac44d55b7d2',
         'title': 'Django',
         'imdb_rating': 5.5,
         'genre': ['Comedy'],
@@ -98,17 +98,17 @@ persons_movies = {
             {'id': '222', 'name': 'Bob'}
         ],
         'writers': [
-            {'id': '0040371', 'name': 'Dan Brown'},
+            {'id': '12dc90d2-3806-42ae-8bd7-44029b4c092d', 'name': 'Dan Brown'},
             {'id': '444', 'name': 'Howard'}
         ],
     }
 person = {
-    'id': '0040371',
+    'id': '12dc90d2-3806-42ae-8bd7-44029b4c092d',
     'name': 'Dan Brown',
-    'film_ids': ['00904987654'],
+    'film_ids': ['724c72b9-dcfd-435f-8547-bac44d55b7d2'],
     'films': [
         {
-            'id': '00904987654',
+            'id': '724c72b9-dcfd-435f-8547-bac44d55b7d2',
             'title': 'Django',
             'imdb_rating': 5.5
         }
