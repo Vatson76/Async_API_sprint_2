@@ -1,12 +1,24 @@
+from functools import lru_cache
 from http import HTTPStatus
 
+from aioredis import Redis
+from elasticsearch import AsyncElasticsearch
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from app.connections.elastic import get_es_connection
+from app.connections.redis import get_redis
 from app.serializers.query_params_classes import PaginationDataParams
 from models.film import Film, FilmDetailed
-from services.film import FilmService, get_film_service
+from services.films_toolkit import FilmsToolkit
 
 router = APIRouter()
+
+
+async def get_films_toolkit(
+        redis: Redis = Depends(get_redis),
+        elastic: AsyncElasticsearch = Depends(get_es_connection),
+) -> FilmsToolkit:
+    return FilmsToolkit(redis=redis, elastic=elastic)
 
 
 @router.get(
@@ -16,12 +28,12 @@ router = APIRouter()
     description='Returns all filmworks'
 )
 async def get_all_filmworks(
-    film_service: FilmService = Depends(get_film_service),
+    film_service: FilmsToolkit = Depends(get_films_toolkit),
     pagination_data: PaginationDataParams = Depends(PaginationDataParams),
     genre: str = Query(None, description='Filter by genre uuid', alias='filter[genre]')
 ) -> list[Film]:
     """Returns all filmworks."""
-    films = await film_service.get_all_films(
+    films = await film_service.list(
         pagination_data=pagination_data,
         genre=genre
     )
@@ -39,10 +51,10 @@ async def get_all_filmworks(
 async def films_search(
     pagination_data: PaginationDataParams = Depends(PaginationDataParams),
     query: str = Query(None, description="Part of the filmwork's data"),
-    film_service: FilmService = Depends(get_film_service)
+    film_service: FilmsToolkit = Depends(get_films_toolkit)
 ) -> list[Film]:
     """Returns list of filmworks by the parameter specified in the query."""
-    films = await film_service.get_all_films(
+    films = await film_service.list(
         pagination_data=pagination_data,
         query=query
     )
@@ -59,10 +71,10 @@ async def films_search(
 )
 async def film_details(
     film_id: str,
-    film_service: FilmService = Depends(get_film_service)
+    film_service: FilmsToolkit = Depends(get_films_toolkit)
 ) -> FilmDetailed:
     """Returns filmwork's detailed description."""
-    film = await film_service.get_by_id(film_id)
+    film = await film_service.get(film_id)
     if not film:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Film not found')
     return FilmDetailed(uuid=film_id, **film.dict(by_alias=True))
