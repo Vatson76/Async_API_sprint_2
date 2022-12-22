@@ -6,7 +6,7 @@ class ElasticSettings(BaseSettings):
 
 
 class RedisSettings(BaseSettings):
-    host: str = Field('redis://redis_test', env='REDIS_HOST')
+    host: str = Field('redis_test', env='REDIS_HOST')
     port: str = Field('6379', env='REDIS_PORT')
     decode_responses: bool = True
 

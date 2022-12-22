@@ -38,7 +38,7 @@ async def test_film_pagination(make_get_request):
 
 
 @pytest.mark.asyncio
-async def test_films_endpoint_cache(make_get_request, redis_client,):
+async def test_films_endpoint_cache(make_get_request, redis_client):
     page_size = 15
     response = await make_get_request('/films/', params={'page[size]': page_size})
     assert response.status == HTTPStatus.OK
@@ -47,7 +47,8 @@ async def test_films_endpoint_cache(make_get_request, redis_client,):
         'page': 1,
         'sort': '',
         'genre': None,
-        'query': None
+        'query': None,
+        'entity_name': 'movies'
     }
     key = json.dumps(params, sort_keys=True)
     data = await redis_client.get(key)

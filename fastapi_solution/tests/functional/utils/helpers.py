@@ -3,6 +3,8 @@ from functools import wraps
 from time import sleep
 from typing import Generator, List, Union
 
+import asyncio
+
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.INFO)
@@ -22,24 +24,46 @@ def backoff(start_sleep_time: Union[int, float] = 0.1, factor: int = 2, border_s
     """
 
     def func_wrapper(func):
-        @wraps(func)
-        async def inner(*args, **kwargs):
-            try:
-                connection = await func(*args, **kwargs)
-            except Exception as e:
-                logger.exception('During connection to service, next error occurred')
-                t = start_sleep_time
-                logger.info(f'Reconnect in %d sec', t)
-                while True:
-                    sleep(t)
-                    try:
-                        connection = await func()
-                        break
-                    except Exception as e:
-                        logger.exception('During connection to service, next error occurred')
-                        t = t * 2 ** factor
-                        t = t if t < border_sleep_time else border_sleep_time
-                        logger.info(f'Cannot establish connection, reconnect in %d sec', t)
-            return connection
+
+        if asyncio.iscoroutinefunction(func):
+            @wraps(func)
+            async def inner(*args, **kwargs):
+                try:
+                    connection = await func(*args, **kwargs)
+                except Exception as e:
+                    logger.exception('During connection to service, next error occurred')
+                    t = start_sleep_time
+                    logger.info(f'Reconnect in %d sec', t)
+                    while True:
+                        sleep(t)
+                        try:
+                            connection = await func(*args, **kwargs)
+                            break
+                        except Exception as e:
+                            logger.exception('During connection to service, next error occurred')
+                            t = t * 2 ** factor
+                            t = t if t < border_sleep_time else border_sleep_time
+                            logger.info(f'Cannot establish connection, reconnect in %d sec', t)
+                return connection
+        else:
+            @wraps(func)
+            def inner(*args, **kwargs):
+                try:
+                    connection = func(*args, **kwargs)
+                except Exception as e:
+                    logger.exception('During connection to service, next error occurred')
+                    t = start_sleep_time
+                    logger.info(f'Reconnect in %d sec', t)
+                    while True:
+                        sleep(t)
+                        try:
+                            connection = func(*args, **kwargs)
+                            break
+                        except Exception as e:
+                            logger.exception('During connection to service, next error occurred')
+                            t = t * 2 ** factor
+                            t = t if t < border_sleep_time else border_sleep_time
+                            logger.info(f'Cannot establish connection, reconnect in %d sec', t)
+                return connection
         return inner
     return func_wrapper

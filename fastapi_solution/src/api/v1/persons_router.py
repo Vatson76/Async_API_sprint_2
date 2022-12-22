@@ -30,7 +30,7 @@ async def get_filtered_persons(
     person_toolkit: PersonsToolkit = Depends(get_persons_toolkit),
     query: str = Query(None, description="Part of the person's data"),
 ) -> List[Person]:
-    persons = await person_toolkit.persons_list(pagination_data=pagination_data, query=query)
+    persons = await person_toolkit.list(pagination_data=pagination_data, query=query)
     if not persons:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Persons not found')
     return persons
@@ -52,7 +52,7 @@ async def persons_get_list_api(
     pagination_data: PaginationDataParams = Depends(PaginationDataParams),
     person_toolkit: PersonsToolkit = Depends(get_persons_toolkit)
 ) -> List[Person]:
-    persons = await person_toolkit.persons_list(pagination_data=pagination_data)
+    persons = await person_toolkit.list(pagination_data=pagination_data)
     if not persons:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Persons not found')
     return persons

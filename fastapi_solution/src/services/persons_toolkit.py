@@ -1,19 +1,22 @@
-import json
 import uuid
 from typing import Type, Optional, Union, List
 
-from elasticsearch import NotFoundError
-from orjson import orjson
+from aioredis import Redis
+from elasticsearch import NotFoundError, AsyncElasticsearch
 from pydantic import BaseModel
 
-from app.core.config import settings
 from app.serializers.query_params_classes import PaginationDataParams
-from app.toolkits import BaseToolkit
+from app.toolkits import BaseToolkit, RedisCacheToolkit
 from models.film import Film
 from models.person import Person
 
 
-class PersonsToolkit(BaseToolkit):
+class PersonsToolkit(BaseToolkit, RedisCacheToolkit):
+
+    def __init__(self, elastic: AsyncElasticsearch, redis: Redis):
+        BaseToolkit.__init__(self, elastic)
+        RedisCacheToolkit.__init__(self, redis)
+
     @property
     def entity_name(self) -> str:
         """Имя сущности, над которой будет работать тулкит"""
@@ -35,15 +38,15 @@ class PersonsToolkit(BaseToolkit):
         return Exception('Не удалось получить данные о человеке по указанным параметрам')
 
     async def get(self, pk: Union[str, uuid.UUID]):
-        person = await self.get_person_from_cache(person_id=pk)
+        person = await self.get_cached_instance_by_pk(pk=pk)
         if person is not None:
             return person
         else:
             person = await super().get(pk=pk)
-            await self.put_person_to_cache(person)
+            await self.cache_instance(person)
             return person
 
-    async def persons_list(
+    async def list(
             self,
             pagination_data: PaginationDataParams,
             query: str = None,
@@ -55,7 +58,7 @@ class PersonsToolkit(BaseToolkit):
             'query': query,
             'entity_name': self.entity_name
         }
-        persons = await self.get_persons_from_cache(params=params)
+        persons = await self.get_cached_instances(params=params)
         if persons is not None:
             return persons
         else:
@@ -73,7 +76,7 @@ class PersonsToolkit(BaseToolkit):
             } if query is not None else None
             persons = await super().list(pagination_data=pagination_data, body=body)
             if persons is not None:
-                await self.put_persons_to_cache(persons, params)
+                await self.cache_instances_by_params(params, persons)
                 return persons
             else:
                 return None
@@ -84,33 +87,3 @@ class PersonsToolkit(BaseToolkit):
         except NotFoundError:
             return None
         return [Film(**film) for film in doc['_source']['films']]
-
-    async def get_person_from_cache(self, person_id: Union[str, uuid.UUID]) -> Optional[Person]:
-        data = await self.redis.get(str(person_id))
-        if not data:
-            return
-        person = Person.parse_raw(data)
-        return person
-
-    async def get_persons_from_cache(self, params) -> Optional[List[Person]]:
-        key = json.dumps(params, sort_keys=True)
-        data = await self.redis.get(key)
-        if not data:
-            return
-        persons = [Person.parse_raw(item) for item in orjson.loads(data)]
-        return persons
-
-    async def put_person_to_cache(self, person: Person):
-        await self.redis.set(
-            person.uuid,
-            person.json(by_alias=True),
-            ex=settings.REDIS_CACHE_TTL
-        )
-
-    async def put_persons_to_cache(self, persons: List[Person], params: dict) -> None:
-        key = json.dumps(params, sort_keys=True)
-        await self.redis.set(
-            key,
-            orjson.dumps([person.json(by_alias=True) for person in persons]),
-            ex=settings.REDIS_CACHE_TTL
-        )

@@ -51,7 +51,8 @@ async def test_films_search_cache(make_get_request, redis_client):
         'page': 1,
         'sort': '',
         'genre': None,
-        'query': 'The Star'
+        'query': 'The Star',
+        'entity_name': 'movies'
     }
     key = json.dumps(params, sort_keys=True)
     data = await redis_client.get(key)

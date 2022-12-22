@@ -12,7 +12,7 @@ from settings import test_settings  # noqa
 
 @backoff()
 def wait_for_es():
-    es_client = Elasticsearch(**test_settings.ELASTIC_DSN.dict())
+    es_client = Elasticsearch(hosts=[test_settings.ELASTIC_DSN.hosts])
     if not es_client.ping():
         raise Exception
 
