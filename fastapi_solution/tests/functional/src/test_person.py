@@ -5,17 +5,18 @@ from http import HTTPStatus
 
 import pytest
 from testdata.es_data import person, persons_data, persons_movies
+from utils.helpers import make_get_request
 
 
 @pytest.mark.asyncio
-async def test_person_list(make_get_request):
+async def test_person_list():
     response = await make_get_request('/persons/')
     assert response.status == HTTPStatus.OK
     assert len(response.body) == len(persons_data)
 
 
 @pytest.mark.asyncio
-async def test_get_one_person(make_get_request, redis_client):
+async def test_get_one_person(redis_client):
     random_elem = random.randint(0, len(persons_data)-1)
     person = persons_data[random_elem]
     person_id = person.get('id')
@@ -30,7 +31,7 @@ async def test_get_one_person(make_get_request, redis_client):
 
 
 @pytest.mark.asyncio
-async def test_persons_films_by_id(make_get_request, es_client):
+async def test_persons_films_by_id(es_client):
     movie_id = uuid.UUID(persons_movies.get('id'))
     person_id = uuid.UUID(person.get('id'))
     await es_client.create('persons', person_id, person)
@@ -50,8 +51,7 @@ async def test_persons_films_by_id(make_get_request, es_client):
     (2, 20, 20)
 ])
 @pytest.mark.asyncio
-async def test_persons_pagination(
-        make_get_request, page, page_size, expected_count):
+async def test_persons_pagination(page, page_size, expected_count):
     response = await make_get_request('/persons/',
                                       params={
                                           "page[number]": page,
@@ -62,13 +62,13 @@ async def test_persons_pagination(
 
 
 @pytest.mark.asyncio
-async def test_person_id_invalid(make_get_request):
+async def test_person_id_invalid():
     response = await make_get_request('/persons/random_id')
     assert response.status == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 @pytest.mark.asyncio
-async def test_genre_sorting_by_inappropriate_field(make_get_request):
+async def test_genre_sorting_by_inappropriate_field():
     response = await make_get_request(
         '/persons/', params={'sort': '-unknown'}
     )
@@ -76,7 +76,7 @@ async def test_genre_sorting_by_inappropriate_field(make_get_request):
 
 
 @pytest.mark.asyncio
-async def test_persons_endpoint_cache(make_get_request, redis_client):
+async def test_persons_endpoint_cache(redis_client):
     page_size = 10
     response = await make_get_request(
         '/persons/', params={'page[size]': page_size}

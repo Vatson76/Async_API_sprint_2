@@ -1,22 +1,12 @@
-from typing import List, Dict, Any
-
-import aiohttp
 import aioredis
 import asyncio
 import pytest
 import pytest_asyncio
 from elasticsearch import AsyncElasticsearch
-from pydantic import BaseModel
 
 from testdata.es_data import genres_data, movies_data, persons_data
 from testdata.es_mapping import genres_index, movies_index, persons_index
 from settings import test_settings
-
-
-class HTTPResponse(BaseModel):
-    body: Any
-    headers: dict
-    status: int
 
 
 @pytest.fixture(scope="session")
@@ -58,23 +48,6 @@ async def redis_client():
     )
     yield client
     client.close()
-
-
-@pytest.fixture
-def make_get_request():
-    async def inner(path: str, params: dict = None) -> HTTPResponse:
-        params = params or {}
-        url = test_settings.SERVICE_API_V1_URL + path
-        session = aiohttp.ClientSession()
-        async with session.get(url, params=params) as response:
-            resp = HTTPResponse(
-                body=await response.json(),
-                headers=response.headers,
-                status=response.status,
-            )
-        await session.close()
-        return resp
-    return inner
 
 
 @pytest_asyncio.fixture(scope='session', autouse=True)
