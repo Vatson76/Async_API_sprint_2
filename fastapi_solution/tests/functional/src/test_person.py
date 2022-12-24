@@ -4,6 +4,7 @@ import uuid
 from http import HTTPStatus
 
 import pytest
+
 from testdata.es_data import person, persons_data, persons_movies
 from utils.helpers import make_get_request
 
@@ -20,13 +21,14 @@ async def test_get_one_person(redis_client):
     random_elem = random.randint(0, len(persons_data)-1)
     person = persons_data[random_elem]
     person_id = person.get('id')
+
     response = await make_get_request(f'/persons/{person_id}/')
-    received_data = response.body
-    assert response.status == HTTPStatus.OK
-    assert received_data.get('id') == person_id
-    assert received_data.get('full_name') == person.get('full_name')
-    assert received_data.get('roles') == person.get('roles')
     cache = await redis_client.get(person_id)
+
+    assert response.status == HTTPStatus.OK
+    assert response.body.get('id') == person_id
+    assert response.body.get('full_name') == person.get('full_name')
+    assert response.body.get('roles') == person.get('roles')
     assert cache
 
 
@@ -34,11 +36,13 @@ async def test_get_one_person(redis_client):
 async def test_persons_films_by_id(es_client):
     movie_id = uuid.UUID(persons_movies.get('id'))
     person_id = uuid.UUID(person.get('id'))
+    person_films = person.get('films')[0]
     await es_client.create('persons', person_id, person)
     await es_client.create('movies', movie_id, persons_movies)
+
     response = await make_get_request(f"/persons/{person_id}/film")
+
     assert response.status == HTTPStatus.OK
-    person_films = person.get('films')[0]
     assert response.body[0].get('id') == person_films.get('id')
     assert response.body[0].get('title') == person_films.get('title')
 
@@ -78,10 +82,6 @@ async def test_genre_sorting_by_inappropriate_field():
 @pytest.mark.asyncio
 async def test_persons_endpoint_cache(redis_client):
     page_size = 10
-    response = await make_get_request(
-        '/persons/', params={'page[size]': page_size}
-    )
-    assert response.status == HTTPStatus.OK
     params = {
         'page_size': page_size,
         'page': 1,
@@ -90,5 +90,11 @@ async def test_persons_endpoint_cache(redis_client):
         'entity_name': 'persons'
     }
     key = json.dumps(params, sort_keys=True)
+
+    response = await make_get_request(
+        '/persons/', params={'page[size]': page_size}
+    )
     cache = await redis_client.get(key)
+
+    assert response.status == HTTPStatus.OK
     assert cache

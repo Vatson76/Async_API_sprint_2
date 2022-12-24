@@ -1,7 +1,7 @@
 import json
+from http import HTTPStatus
 
 import pytest
-from http import HTTPStatus
 
 from testdata.es_data import movies_data
 from utils.helpers import make_get_request
@@ -11,11 +11,9 @@ from utils.helpers import make_get_request
 async def test_get_all_filmworks():
     response = await make_get_request('/films/', params={'sort': 'imdb_rating'})
 
+    film = response.body[0]
     assert response.status == HTTPStatus.OK
     assert len(response.body) == 40
-
-    film = response.body[0]
-
     assert film['id']
     assert film['imdb_rating'] == 5.5
     assert film['title'] == 'Django'
@@ -55,11 +53,9 @@ async def test_films_endpoint_cache(redis_client):
     key = json.dumps(params, sort_keys=True)
 
     response = await make_get_request('/films/', params={'page[size]': page_size})
-
-    assert response.status == HTTPStatus.OK
-
     data = await redis_client.get(key)
 
+    assert response.status == HTTPStatus.OK
     assert data
 
 
@@ -69,10 +65,10 @@ async def test_get_film(redis_client):
     film_id = original_film['id']
 
     response = await make_get_request(f'/films/{film_id}')
-    assert response.status == HTTPStatus.OK
+    data = await redis_client.get(film_id)
 
     film = response.body
-
+    assert response.status == HTTPStatus.OK
     assert film['id'] == original_film['id']
     assert film['title'] == original_film['title']
     assert film['imdb_rating'] == original_film['imdb_rating']
@@ -81,8 +77,4 @@ async def test_get_film(redis_client):
     assert film['actors'] == original_film['actors']
     assert film['writers'] == original_film['writers']
     assert film['directors'] == original_film['directors']
-
-    data = await redis_client.get(film_id)
-
     assert data
-    
