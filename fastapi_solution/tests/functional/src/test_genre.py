@@ -5,10 +5,11 @@ from http import HTTPStatus
 
 import pytest
 from testdata.es_data import genres_data
+from utils.helpers import make_get_request
 
 
 @pytest.mark.asyncio
-async def test_get_all_genres(make_get_request):
+async def test_get_all_genres():
     response = await make_get_request('/genres/')
     assert response.status == HTTPStatus.OK
     assert len(response.body) == len(genres_data)
@@ -22,8 +23,7 @@ async def test_get_all_genres(make_get_request):
     (2, 20, 20)
 ])
 @pytest.mark.asyncio
-async def test_genre_pagination(
-        make_get_request, page, page_size, expected_count):
+async def test_genre_pagination(page, page_size, expected_count):
     response = await make_get_request('/genres/',
                                       params={
                                           "page[number]": page,
@@ -34,7 +34,7 @@ async def test_genre_pagination(
 
 
 @pytest.mark.asyncio
-async def test_get_one_genre(make_get_request, redis_client):
+async def test_get_one_genre(redis_client):
     random_elem = random.randint(0, len(genres_data)-1)
     genre = genres_data[random_elem]
     genre_id = genre.get('id')
@@ -48,7 +48,7 @@ async def test_get_one_genre(make_get_request, redis_client):
 
 
 @pytest.mark.asyncio
-async def test_genre_sorting_by_inappropriate_field(make_get_request):
+async def test_genre_sorting_by_inappropriate_field():
     response = await make_get_request(
         '/genres/', params={'sort': '-unknown'}
     )
@@ -56,13 +56,13 @@ async def test_genre_sorting_by_inappropriate_field(make_get_request):
 
 
 @pytest.mark.asyncio
-async def test_genre_id_invalid(make_get_request):
+async def test_genre_id_invalid():
     response = await make_get_request('/genres/random_id')
     assert response.status == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 @pytest.mark.asyncio
-async def test_cache_genre(es_client, make_get_request):
+async def test_cache_genre(es_client):
     genre_id = str(uuid.uuid4())
     genre_data = {"id": genre_id, "name": "Test_genre"}
     await es_client.create('genres', genre_id, genre_data)
@@ -75,7 +75,7 @@ async def test_cache_genre(es_client, make_get_request):
 
 
 @pytest.mark.asyncio
-async def test_genres_endpoint_cache(make_get_request, redis_client):
+async def test_genres_endpoint_cache(redis_client):
     page_size = 10
     response = await make_get_request(
         '/genres/', params={'page[size]': page_size}
