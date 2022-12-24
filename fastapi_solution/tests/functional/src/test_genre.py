@@ -4,6 +4,7 @@ import uuid
 from http import HTTPStatus
 
 import pytest
+
 from testdata.es_data import genres_data
 from utils.helpers import make_get_request
 
@@ -38,12 +39,13 @@ async def test_get_one_genre(redis_client):
     random_elem = random.randint(0, len(genres_data)-1)
     genre = genres_data[random_elem]
     genre_id = genre.get('id')
+
     response = await make_get_request(f'/genres/{genre_id}/')
-    received_genre = response.body
-    assert response.status == HTTPStatus.OK
-    assert received_genre.get('id') == genre_id
-    assert received_genre.get('name') == genre.get('name')
     cache = await redis_client.get(genre_id)
+
+    assert response.status == HTTPStatus.OK
+    assert response.body.get('id') == genre_id
+    assert response.body.get('name') == genre.get('name')
     assert cache
 
 
@@ -66,10 +68,15 @@ async def test_cache_genre(es_client):
     genre_id = str(uuid.uuid4())
     genre_data = {"id": genre_id, "name": "Test_genre"}
     await es_client.create('genres', genre_id, genre_data)
+
     response_first = await make_get_request(f'/genres/{genre_id}/')
+
     assert response_first.status == HTTPStatus.OK
+
     await es_client.delete('genres', genre_id)
+
     response_second = await make_get_request(f'/genres/{genre_id}/')
+
     assert response_second.status == HTTPStatus.OK
     assert response_first.body == response_second.body
 
@@ -77,10 +84,6 @@ async def test_cache_genre(es_client):
 @pytest.mark.asyncio
 async def test_genres_endpoint_cache(redis_client):
     page_size = 10
-    response = await make_get_request(
-        '/genres/', params={'page[size]': page_size}
-    )
-    assert response.status == HTTPStatus.OK
     params = {
         'page_size': page_size,
         'page': 1,
@@ -88,5 +91,11 @@ async def test_genres_endpoint_cache(redis_client):
         'entity_name': 'genres'
     }
     key = json.dumps(params, sort_keys=True)
+
+    response = await make_get_request(
+        '/genres/', params={'page[size]': page_size}
+    )
     cache = await redis_client.get(key)
+
+    assert response.status == HTTPStatus.OK
     assert cache

@@ -57,8 +57,8 @@ async def test_films_search_cache(redis_client):
     }
     key = json.dumps(params, sort_keys=True)
 
+    #а зачем тут этот запрос?
     response = await make_get_request('/films/search', params={'query': 'The Star'})
-
     data = await redis_client.get(key)
 
     assert data
@@ -75,8 +75,8 @@ async def test_persons_search_cache(redis_client):
     }
     key = json.dumps(params, sort_keys=True)
 
+    #зачем тут этот запрос?
     response = await make_get_request('/persons/search', params={'query': 'Dan'})
-
     data = await redis_client.get(key)
 
     assert data
