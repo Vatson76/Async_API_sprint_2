@@ -1,7 +1,6 @@
 import hashlib
 import os
 import random
-from base64 import b64encode
 from datetime import timedelta
 from typing import Tuple
 from flask_jwt_extended import create_access_token, create_refresh_token
