@@ -2,13 +2,50 @@ import hashlib
 import os
 import random
 from datetime import timedelta
+from functools import wraps
+from http import HTTPStatus
 from typing import Tuple
-from flask_jwt_extended import create_access_token, create_refresh_token
 
+from flask import jsonify
+from flask_jwt_extended import (create_access_token, create_refresh_token,
+                                current_user)
+
+from auth_service.src.models.users import AuthHistory, DeviceTypeEnum, User
+from auth_service.src.settings import settings
 from db import db
 from services.redis import redis
-from settings import settings
-from auth.models import User
+
+
+def admin_required():
+    def wrapper(fn):
+        @wraps(fn)
+        def decorator(*args, **kwargs):
+            if current_user.is_admin:
+                return fn(*args, **kwargs)
+            else:
+                return jsonify(
+                    message="You need to be an admin to view this page."
+                ), HTTPStatus.FORBIDDEN
+        return decorator
+    return wrapper
+
+
+def add_auth_history(user, request):
+    user_agent = request.headers.get('user-agent', '')
+    user_host = request.headers.get('host', '')
+    user_agent = user_agent.lower()
+    if ('iphone' in user_agent) or ('android' in user_agent):
+        device = DeviceTypeEnum.mobile.value
+    elif 'smart-tv' in user_agent:
+        device = DeviceTypeEnum.smart.value
+    else:
+        device = DeviceTypeEnum.web.value
+    user_auth = AuthHistory(user_id=user.id,
+                            user_agent=user_agent,
+                            ip_address=user_host,
+                            device=device)
+    db.session.add(user_auth)
+    db.session.commit()
 
 
 def hash_password(password: str) -> str:
