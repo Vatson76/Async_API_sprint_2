@@ -10,8 +10,8 @@ from flask import jsonify
 from flask_jwt_extended import (create_access_token, create_refresh_token,
                                 current_user)
 
-from auth_service.src.models.users import AuthHistory, DeviceTypeEnum, User
-from auth_service.src.settings import settings
+from models.users import AuthHistory, DeviceTypeEnum, User
+from settings import settings
 from db import db
 from services.redis import redis
 

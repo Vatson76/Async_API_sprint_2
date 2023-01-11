@@ -3,10 +3,10 @@ from http import HTTPStatus
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 
-from auth_service.src.db import db
-from auth_service.src.models.roles import Role, UserRole
-from auth_service.src.models.users import User
-from auth_service.src.services.helpers import admin_required, hash_password
+from db import db
+from models.roles import Role, UserRole
+from models.users import User
+from services.helpers import admin_required, hash_password
 
 admin = Blueprint('admin', __name__)
 

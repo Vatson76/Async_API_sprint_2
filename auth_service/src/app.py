@@ -2,16 +2,16 @@ from datetime import timedelta
 from http import HTTPStatus
 
 from db import init_db, db
-from auth_service.src.api.users import auth
-from auth_service.src.api.roles import admin
+from api.users import auth
+from api.roles import admin
 from flask_jwt_extended import JWTManager
 from flask import Flask, jsonify
 from settings import settings
 from services.redis import redis
 
 #Models import for creation in db
-from auth_service.src.models.users import User, AuthHistory
-from auth_service.src.models.roles import Role, UserRole
+from models.users import User, AuthHistory
+from models.roles import Role, UserRole
 
 app = Flask(__name__)
 

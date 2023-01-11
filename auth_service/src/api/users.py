@@ -9,13 +9,13 @@ from flask_pydantic import validate
 from pydantic import BaseModel, EmailStr, validator
 from sqlalchemy.exc import SQLAlchemyError
 
-from auth_service.src.models.users import AuthHistory, User
-from auth_service.src.services.helpers import (add_auth_history,
+from models.users import AuthHistory, User
+from services.helpers import (add_auth_history,
                                              check_passwords_match,
                                              create_tokens, get_user_from_db,
                                              hash_password, revoke_token,
                                              set_user_refresh_token)
-from auth_service.src.db import db
+from db import db
 
 auth = Blueprint('auth', __name__)
 
