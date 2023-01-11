@@ -1,17 +1,21 @@
 from typing import Optional
 
-from flask import Blueprint, jsonify, abort
-from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity, create_access_token, current_user, decode_token
+from http import HTTPStatus
+from flask import Blueprint, abort, jsonify, request
+from flask_jwt_extended import (create_access_token, current_user,
+                                decode_token, get_jwt, get_jwt_identity,
+                                jwt_required)
 from flask_pydantic import validate
-from pydantic import BaseModel, validator, EmailStr
+from pydantic import BaseModel, EmailStr, validator
 from sqlalchemy.exc import SQLAlchemyError
 
-from auth.models import User
-from db import db
-from services.helpers import (
-    hash_password, get_user_from_db, check_passwords_match,
-    create_tokens, revoke_token, set_user_refresh_token
-)
+from auth_service.src.models.users import AuthHistory, User
+from auth_service.src.services.helpers import (add_auth_history,
+                                             check_passwords_match,
+                                             create_tokens, get_user_from_db,
+                                             hash_password, revoke_token,
+                                             set_user_refresh_token)
+from auth_service.src.db import db
 
 auth = Blueprint('auth', __name__)
 
@@ -44,6 +48,12 @@ class ChangeFormDataModel(UserFormDataModel, RegistrationPasswordModel):
     password2: Optional[str]
 
 
+@auth.route("/authenticate", methods=["GET"])
+@jwt_required(refresh=True)
+def authenticate():
+    return jsonify(user_role=current_user.role)
+
+
 @auth.route('/register', methods=['POST'])
 @validate()
 def register(form: RegistrationFormDataModel):
@@ -68,10 +78,18 @@ def login(form: UserFormDataModel):
         abort(404, description='User does not exist')
     else:
         existing_password = user.password
-        if check_passwords_match(existing_password=existing_password, entered_password=form.password):
+        if check_passwords_match(
+                existing_password=existing_password,
+                entered_password=form.password
+        ):
             access_token, refresh_token = create_tokens(identity=user.email)
             set_user_refresh_token(user=user, refresh_token=refresh_token)
-            return jsonify(access_token=access_token, refresh_token=refresh_token)
+            add_auth_history(user, request)
+            return jsonify(
+                message='Successful Entry',
+                access_token=access_token,
+                refresh_token=refresh_token
+            )
         else:
             abort(401, description='Passwords does not match')
 
@@ -82,7 +100,9 @@ def logout():
     token = get_jwt()
     revoke_token(token)
 
-    return jsonify(msg=f"{token['type'].capitalize()} token successfully revoked")
+    return jsonify(
+        msg=f"{token['type'].capitalize()} token successfully revoked"
+    )
 
 
 @auth.route('/user/change', methods=['POST'])
@@ -92,16 +112,19 @@ def change(form: ChangeFormDataModel):
     user = current_user
     email = form.email
     password = form.password
-    try:
-        if email is not None:
-            user.email = email
-        if password is not None:
-            password = hash_password(form.password)
-            user.password = password
-        db.session.commit()
-    except SQLAlchemyError:
-        db.session.rollback()
-        abort(422, 'Incorrect data')
+    if email is not None:
+        user.email = email
+    if password is not None:
+        password = hash_password(form.password)
+        user.password = password
+    access_token, refresh_token = create_tokens(identity=user.email)
+    set_user_refresh_token(user=user, refresh_token=refresh_token)
+    db.session.commit()
+    return jsonify(
+        message='User data is changed.',
+        access_token=access_token,
+        refresh_token=refresh_token
+    ), HTTPStatus.OK
 
 
 @auth.route("/refresh", methods=["POST"])
@@ -115,3 +138,23 @@ def refresh():
         return jsonify(access_token=access_token)
     else:
         abort(401, description='Wrong refresh token')
+
+
+@auth.route('/users/<uuid:user_uuid>/auth-history', methods=['GET'])
+@jwt_required()
+def get_auth_history(user_uuid):
+    if current_user.id != user_uuid:
+        abort(403)
+    history = AuthHistory.query.filter_by(user_id=user_uuid).all()
+    result = []
+    for row in history:
+        result.append(
+            {
+                'id': row.id,
+                'user_agent': row.user_agent,
+                'ip_address': row.ip_address,
+                'created': row.created
+             }
+        )
+    return jsonify(message='User login history',
+                   user_login_history=result)
