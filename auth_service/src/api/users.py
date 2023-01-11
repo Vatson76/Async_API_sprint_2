@@ -17,7 +17,7 @@ from auth_service.src.services.helpers import (add_auth_history,
                                              set_user_refresh_token)
 from auth_service.src.db import db
 
-auth = Blueprint('api', __name__)
+auth = Blueprint('auth', __name__)
 
 
 class PasswordModel(BaseModel):

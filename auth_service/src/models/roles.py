@@ -15,7 +15,7 @@ class DefaultRoleEnum(enum.Enum):
 
 class Role(db.Model):
     __tablename__ = 'roles'
-    __table_args__ = {"schema": "public", "extend_existing": True}
+    __table_args__ = {"schema": "public"}
 
     id = db.Column(UUID(as_uuid=True), primary_key=True,
                    default=uuid.uuid4, unique=True, nullable=False)
