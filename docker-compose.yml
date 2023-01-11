@@ -1,5 +1,6 @@
 version: '3.8'
 services:
+
   postgres:
     image: postgres:14.5
     container_name: "database"
@@ -14,6 +15,7 @@ services:
     restart: always
     env_file:
       - .env
+
   elastic:
     image: elasticsearch:7.9.1
     container_name: "elastic"
@@ -27,18 +29,10 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
   redis:
     image: redis
     container_name: aioredis
-    healthcheck:
-      test: [ "CMD", "redis-cli","ping" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  auth_redis:
-    image: redis
-    container_name: auth_redis
     healthcheck:
       test: [ "CMD", "redis-cli","ping" ]
       interval: 5s
@@ -59,6 +53,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+
   admin:
     build:
       context: ./admin_service
@@ -72,6 +67,7 @@ services:
         condition: service_healthy
     env_file:
       - .env
+
   etl:
     container_name: etl
     build:
@@ -86,18 +82,6 @@ services:
       redis:
         condition: service_healthy
 
-  auth:
-    container_name: auth_service
-    build:
-      context: ./auth_service
-    env_file:
-      - .env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      auth_redis:
-        condition: service_healthy
-
   nginx:
     image: nginx:1.19.2
     container_name: nginx
@@ -108,6 +92,5 @@ services:
     depends_on:
       - admin
       - fastapi
-      - auth
     ports:
       - "80:80"
