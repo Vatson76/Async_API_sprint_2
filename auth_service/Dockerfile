@@ -2,8 +2,8 @@ FROM python:3.9
 
 WORKDIR /opt/app
 
-RUN groupadd -r dev && useradd -d /opt/app -r -g dev dev \
-    && chown dev:dev -R /opt/app
+RUN groupadd -r dev && useradd -d /opt/src -r -g dev dev \
+    && chown dev:dev -R /opt/src
 
 
 COPY ./requirements.txt .
@@ -16,7 +16,7 @@ RUN  pip install --upgrade pip \
 
 COPY ./src .
 
-RUN chown -R dev:dev /opt/app
+RUN chown -R dev:dev /opt/src
 
 USER dev
 

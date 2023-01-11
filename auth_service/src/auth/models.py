@@ -20,6 +20,7 @@ class User(db.Model):
     email = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.String, nullable=False)
     role = db.Column(Enum(UserRolesEnum))
+    refresh_token = db.Column(db.String, unique=True, nullable=False)
 
     def __repr__(self):
         return f'<User {self.login}>'
