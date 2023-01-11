@@ -39,6 +39,15 @@ services:
       timeout: 5s
       retries: 5
 
+  auth_redis:
+    image: redis
+    container_name: auth_redis
+    healthcheck:
+      test: [ "CMD", "redis-cli","ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   fastapi:
     container_name: fastapi
     image: fastapi_image
@@ -82,6 +91,18 @@ services:
       redis:
         condition: service_healthy
 
+  auth:
+    container_name: auth_service
+    build:
+      context: ./auth_service
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth_redis:
+        condition: service_healthy
+
   nginx:
     image: nginx:1.19.2
     container_name: nginx
@@ -92,5 +113,6 @@ services:
     depends_on:
       - admin
       - fastapi
+      - auth
     ports:
       - "80:80"

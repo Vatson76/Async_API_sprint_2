@@ -1,14 +1,14 @@
 from datetime import timedelta
 
-from flask import Flask, jsonify
 from db import init_db, db
 from auth.auth_router import auth
 from flask_jwt_extended import JWTManager
+from flask import Flask, jsonify
+from settings import settings
+from services.redis import redis
 
 #Models import for creation in db
 from auth.models import User
-from settings import settings
-from services.redis import redis
 
 
 app = Flask(__name__)
@@ -22,7 +22,7 @@ app.config["JWT_SECRET_KEY"] = settings.JWT_SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = settings.POSTGRES_URL
 
 
-app.register_blueprint(auth)
+app.register_blueprint(auth, url_prefix='/auth')
 jwt = JWTManager(app)
 
 jwt_redis_blocklist = redis
@@ -46,13 +46,13 @@ def resource_not_found(e):
     return jsonify(error=str(e)), 422
 
 
-def main():
+def create_app():
     init_db(app)
     with app.app_context():
         db.create_all()
-    app.run()
+    return app
 
 
 if __name__ == '__main__':
-    main()
-
+    app = create_app()
+    app.run()
