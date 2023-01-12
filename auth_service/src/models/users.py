@@ -10,7 +10,7 @@ from db import db
 
 class User(db.Model):
     __tablename__ = 'users'
-    __table_args__ = {"schema": "public"}
+    __table_args__ = {"schema": "auth"}
 
     id = db.Column(UUID(as_uuid=True), primary_key=True,
                    default=uuid.uuid4, unique=True, nullable=False)
@@ -49,18 +49,18 @@ def create_partition(target, connection, **kw) -> None:
 
 class AuthHistory(db.Model):
     __tablename__ = 'auth_history'
-    # __table_args__ = {"schema": "public"}
     __table_args__ = (
         UniqueConstraint('id', 'device'),
         {
             'postgresql_partition_by': 'LIST (device)',
             'listeners': [('after_create', create_partition)],
+            'schema': 'auth'
         }
     )
     id = db.Column(UUID(as_uuid=True), primary_key=True,
                    default=uuid.uuid4,  nullable=False)
     user_id = db.Column(UUID(as_uuid=True),
-                        db.ForeignKey('public.users.id'),
+                        db.ForeignKey('auth.users.id'),
                         nullable=False)
     user_agent = db.Column(db.String, nullable=False)
     ip_address = db.Column(db.String(100))

@@ -1,6 +1,8 @@
 from datetime import timedelta
 from http import HTTPStatus
 
+from flask_migrate import Migrate
+
 from db import init_db, db
 from api.users import auth
 from api.roles import admin
@@ -28,6 +30,9 @@ app.register_blueprint(admin, url_prefix='/admin')
 jwt = JWTManager(app)
 
 jwt_redis_blocklist = redis
+
+migrate = Migrate(app, db)
+init_db(app)
 
 
 @jwt.token_in_blocklist_loader
@@ -68,13 +73,5 @@ def method_not_allowed(error):
     return jsonify(error=str(error)), HTTPStatus.METHOD_NOT_ALLOWED
 
 
-def create_app():
-    init_db(app)
-    with app.app_context():
-        db.create_all()
-    return app
-
-
 if __name__ == '__main__':
-    app = create_app()
     app.run()
