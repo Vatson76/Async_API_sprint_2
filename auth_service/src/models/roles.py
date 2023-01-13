@@ -15,7 +15,7 @@ class DefaultRoleEnum(enum.Enum):
 
 class Role(db.Model):
     __tablename__ = 'roles'
-    __table_args__ = {"schema": "public"}
+    __table_args__ = {"schema": "auth"}
 
     id = db.Column(UUID(as_uuid=True), primary_key=True,
                    default=uuid.uuid4, unique=True, nullable=False)
@@ -36,9 +36,9 @@ class Role(db.Model):
 
 class UserRole(db.Model):
     __tablename__ = 'user_role'
-    __table_args__ = {"schema": "public"}
+    __table_args__ = {"schema": "auth"}
 
     id = db.Column(UUID(as_uuid=True), primary_key=True,
                    default=uuid.uuid4, unique=True, nullable=False)
-    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('public.users.id'))
-    role_id = db.Column(UUID(as_uuid=True), db.ForeignKey('public.roles.id'))
+    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('auth.users.id'))
+    role_id = db.Column(UUID(as_uuid=True), db.ForeignKey('auth.roles.id'))
