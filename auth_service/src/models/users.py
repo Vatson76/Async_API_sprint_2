@@ -21,9 +21,6 @@ class User(db.Model):
     is_admin = db.Column(db.Boolean, nullable=True, default=False)
     active = db.Column(db.Boolean, default=True, nullable=False)
 
-    def __repr__(self):
-        return '<User %r>' % self.username
-
 
 class DeviceTypeEnum(enum.Enum):
     mobile = 'mobile'

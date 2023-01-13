@@ -23,9 +23,6 @@ class Role(db.Model):
     description = db.Column(db.String(255))
     created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
-    def __repr__(self):
-        return f'{self.name}. {self.description}'
-
     class Meta:
         PROTECTED_ROLE_NAMES = (
             DefaultRoleEnum.guest.value,
