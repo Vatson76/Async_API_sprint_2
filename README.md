@@ -1,4 +1,4 @@
-# Проектная работа 5 спринта
+# Проектная работа
 
 Ссылка на проект: https://github.com/Vatson76/Async_API_sprint_2
 
@@ -31,6 +31,7 @@ make redis
 - Открытие административного сайта - http://127.0.0.1:80/admin/
 - Api - http://127.0.0.1:80/api/v1/
 - Страница с документацией http://127.0.0.1:80/api/openapi
+- Путь к сервису авторизации http://127.0.0.1:80/auth
 
 ## Запуск тестов
 Перейдите в папку fastapi_solution/tests/functional и выполните команду docker-compose up -d

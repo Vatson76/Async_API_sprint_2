@@ -8,7 +8,7 @@ from models.roles import Role, UserRole
 from models.users import User
 from services.helpers import admin_required, hash_password
 
-admin = Blueprint('admin', __name__)
+admin = Blueprint('admin', __name__, url_prefix='/admin')
 
 
 @admin.cli.command('createsuperuser')

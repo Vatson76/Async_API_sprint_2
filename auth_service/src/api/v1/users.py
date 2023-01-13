@@ -17,7 +17,7 @@ from services.helpers import (add_auth_history,
                                              set_user_refresh_token)
 from db import db
 
-auth = Blueprint('auth', __name__)
+auth = Blueprint('auth', __name__, url_prefix='/auth')
 
 
 class PasswordModel(BaseModel):
@@ -75,7 +75,7 @@ def register(form: RegistrationFormDataModel):
 def login(form: UserFormDataModel):
     user = get_user_from_db(email=form.email)
     if user is None:
-        abort(404, description='User does not exist')
+        abort(HTTPStatus.NOT_FOUND, description='User does not exist')
     else:
         existing_password = user.password
         if check_passwords_match(
@@ -91,7 +91,7 @@ def login(form: UserFormDataModel):
                 refresh_token=refresh_token
             )
         else:
-            abort(401, description='Passwords does not match')
+            abort(HTTPStatus.UNAUTHORIZED, description='Passwords does not match')
 
 
 @auth.route("/logout", methods=["DELETE"])
@@ -137,14 +137,14 @@ def refresh():
         access_token = create_access_token(identity=identity)
         return jsonify(access_token=access_token)
     else:
-        abort(401, description='Wrong refresh token')
+        abort(HTTPStatus.UNAUTHORIZED, description='Wrong refresh token')
 
 
 @auth.route('/users/<uuid:user_uuid>/auth-history', methods=['GET'])
 @jwt_required()
 def get_auth_history(user_uuid):
     if current_user.id != user_uuid:
-        abort(403)
+        abort(HTTPStatus.FORBIDDEN)
     history = AuthHistory.query.filter_by(user_id=user_uuid).all()
     result = []
     for row in history:
