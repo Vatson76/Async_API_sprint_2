@@ -2,6 +2,7 @@ from datetime import timedelta
 from http import HTTPStatus
 
 from flask_migrate import Migrate
+from sqlalchemy.future import select
 
 from db import init_db, db
 from api.v1 import v1
@@ -43,7 +44,7 @@ def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
 @jwt.user_lookup_loader
 def user_lookup_callback(_jwt_header, jwt_data):
     identity = jwt_data["sub"]
-    return User.query.filter_by(email=identity).first()
+    return db.session.execute(select(User).where(User.email == identity)).scalars().one()
 
 
 @app.errorhandler(422)

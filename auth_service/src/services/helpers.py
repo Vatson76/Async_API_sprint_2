@@ -9,6 +9,7 @@ from typing import Tuple
 from flask import jsonify
 from flask_jwt_extended import (create_access_token, create_refresh_token,
                                 current_user)
+from sqlalchemy.future import select
 
 from models.users import AuthHistory, DeviceTypeEnum, User
 from settings import settings
@@ -79,7 +80,7 @@ def get_token_expire_time(token_type: str):
 
 
 def get_user_from_db(email: str) -> User:
-    return User.query.filter_by(email=email).first()
+    return db.session.execute(select(User).where(User.email == email)).scalars().one_or_none()
 
 
 def revoke_token(token):

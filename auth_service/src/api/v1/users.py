@@ -49,9 +49,10 @@ class ChangeFormDataModel(UserFormDataModel, RegistrationPasswordModel):
 
 
 @auth.route("/authenticate", methods=["GET"])
-@jwt_required(refresh=True)
+@jwt_required()
 def authenticate():
-    return jsonify(user_role=current_user.role)
+    user_roles = [role.name for role in current_user.roles]
+    return jsonify(user_roles=user_roles)
 
 
 @auth.route('/register', methods=['POST'])

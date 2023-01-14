@@ -67,6 +67,18 @@ def upgrade():
     postgresql_partition_by='LIST (device)',
     schema='auth'
     )
+    op.execute(
+        """CREATE TABLE IF NOT EXISTS auth.auth_history_smart
+        PARTITION OF auth.auth_history FOR VALUES IN ('smart')"""
+    )
+    op.execute(
+        """CREATE TABLE IF NOT EXISTS auth.auth_history_mobile
+        PARTITION OF auth.auth_history FOR VALUES IN ('mobile')"""
+    )
+    op.execute(
+        """CREATE TABLE IF NOT EXISTS auth.auth_history_web
+        PARTITION OF auth.auth_history FOR VALUES IN ('web')"""
+    )
     # ### end Alembic commands ###
 
 
