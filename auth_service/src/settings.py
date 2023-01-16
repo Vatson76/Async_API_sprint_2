@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import BaseSettings, PostgresDsn, Field
 
 
@@ -18,6 +16,7 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str = 'top secret'
     db = Database()
     POSTGRES_URL: PostgresDsn = f'postgresql://{db.user}:{db.password}@{db.host}:{db.port}/{db.db}'
+    TEST_POSTGRES_URL = 'postgresql://postgres:postgres@localhost:5432/test'
 
     REDIS_AUTH_HOST: str = 'localhost'
     REDIS_AUTH_PORT: int = 6379

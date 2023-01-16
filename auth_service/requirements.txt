@@ -18,12 +18,14 @@ itsdangerous==2.1.2
 Jinja2==3.1.2
 Mako==1.2.4
 MarkupSafe==2.1.1
+mock==5.0.1
 packaging==23.0
 pluggy==1.0.0
 psycopg2-binary==2.9.5
 pydantic==1.10.2
 PyJWT==2.6.0
 pytest==7.2.0
+pytest-mock==3.10.0
 redis==4.4.0
 SQLAlchemy==1.4.45
 SQLAlchemy-Utils==0.39.0

@@ -1,15 +1,26 @@
-from pathlib import Path
-
 import flask_migrate
 import pytest
+import datetime
+
 from sqlalchemy.orm import Session
 
 from app import app, init_db
 
 from sqlalchemy import create_engine
-from sqlalchemy_utils import database_exists, create_database, drop_database
+from sqlalchemy_utils import database_exists, create_database
 
-test_database_url = 'postgresql://qchat:qchat@localhost:54321/test'
+from models.roles import Role
+from settings import settings
+
+
+from flask_jwt_extended import create_access_token
+
+from models.users import User
+from services.helpers import hash_password
+from pathlib import Path
+
+
+test_database_url = settings.TEST_POSTGRES_URL
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -35,8 +46,9 @@ def engine(flask_app):
 
 
 @pytest.fixture(scope="function", autouse=True)
-def session(engine):
+def session(engine, mocker):
     with Session(engine, expire_on_commit=False) as session:
+        mocker.patch('db.db.session', session)
         yield session
         session.rollback()
 
@@ -49,3 +61,59 @@ def client(flask_app):
 @pytest.fixture()
 def runner(flask_app):
     return flask_app.test_cli_runner()
+
+
+@pytest.fixture()
+def test_user(session, role_guest):
+    password = hash_password('test_password')
+    user = User(
+        email='test@mail.ru',
+        password=password,
+        refresh_token='adsfadfadfdaf',
+        registered_at=datetime.datetime.now(),
+        is_admin=False,
+        active=True,
+        roles=[role_guest]
+    )
+    session.add(user)
+    session.commit()
+    return user
+
+
+@pytest.fixture()
+def test_user_access_token(session, test_user):
+    token = create_access_token(test_user.email)
+    return token
+
+
+@pytest.fixture()
+def role_guest(session):
+    role = Role(
+        name='guest',
+        description='guest role',
+    )
+    session.add(role)
+    session.commit()
+    return role
+
+
+@pytest.fixture()
+def role_superuser(session):
+    role = Role(
+        name='superuser',
+        description='guest role',
+    )
+    session.add(role)
+    session.commit()
+    return role
+
+
+@pytest.fixture()
+def role_staff(session):
+    role = Role(
+        name='staff',
+        description='guest role',
+    )
+    session.add(role)
+    session.commit()
+    return role

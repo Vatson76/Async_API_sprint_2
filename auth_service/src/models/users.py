@@ -4,8 +4,10 @@ from datetime import datetime
 
 from sqlalchemy import DateTime, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
 from db import db
+from models.roles import UserRole
 
 
 class User(db.Model):
@@ -20,6 +22,7 @@ class User(db.Model):
     registered_at = db.Column(DateTime, default=datetime.utcnow, nullable=False)
     is_admin = db.Column(db.Boolean, nullable=True, default=False)
     active = db.Column(db.Boolean, default=True, nullable=False)
+    roles = relationship("Role", secondary=UserRole.__table__)
 
 
 class DeviceTypeEnum(enum.Enum):
@@ -28,29 +31,12 @@ class DeviceTypeEnum(enum.Enum):
     smart = 'smart'
 
 
-def create_partition(target, connection, **kw) -> None:
-    """ creating partition by session """
-    connection.execute(
-        """CREATE TABLE IF NOT EXISTS "auth_history_smart" 
-        PARTITION OF "auth_history" FOR VALUES IN ('smart')"""
-    )
-    connection.execute(
-        """CREATE TABLE IF NOT EXISTS "auth_history_mobile" 
-        PARTITION OF "auth_history" FOR VALUES IN ('mobile')"""
-    )
-    connection.execute(
-        """CREATE TABLE IF NOT EXISTS "auth_history_web" 
-        PARTITION OF "auth_history" FOR VALUES IN ('web')"""
-    )
-
-
 class AuthHistory(db.Model):
     __tablename__ = 'auth_history'
     __table_args__ = (
         UniqueConstraint('id', 'device'),
         {
             'postgresql_partition_by': 'LIST (device)',
-            'listeners': [('after_create', create_partition)],
             'schema': 'auth'
         }
     )
