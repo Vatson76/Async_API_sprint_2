@@ -101,7 +101,7 @@ def role_guest(session):
 def role_superuser(session):
     role = Role(
         name='superuser',
-        description='guest role',
+        description='superuser role',
     )
     session.add(role)
     session.commit()
@@ -112,8 +112,41 @@ def role_superuser(session):
 def role_staff(session):
     role = Role(
         name='staff',
-        description='guest role',
+        description='staff role',
     )
     session.add(role)
     session.commit()
     return role
+
+
+@pytest.fixture()
+def role_test(session):
+    role = Role(
+        name='test',
+        description='test role',
+    )
+    session.add(role)
+    session.commit()
+    return role
+
+
+@pytest.fixture()
+def test_admin(session):
+    password = hash_password('password123')
+    admin = User(
+        email='super@mail.ru',
+        password=password,
+        refresh_token='adsfadfadfdafdserfg',
+        registered_at=datetime.datetime.now(),
+        is_admin=True,
+        active=True,
+    )
+    session.add(admin)
+    session.commit()
+    return admin
+
+
+@pytest.fixture()
+def test_admin_access_token(session, test_admin):
+    token = create_access_token(test_admin.email)
+    return token

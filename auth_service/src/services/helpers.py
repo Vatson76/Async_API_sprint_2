@@ -23,10 +23,9 @@ def admin_required():
         def decorator(*args, **kwargs):
             if current_user.is_admin:
                 return fn(*args, **kwargs)
-            else:
-                return jsonify(
-                    message="You need to be an admin to view this page."
-                ), HTTPStatus.FORBIDDEN
+            return jsonify(
+                message="You need to be an admin to view this page."
+            ), HTTPStatus.FORBIDDEN
         return decorator
     return wrapper
 

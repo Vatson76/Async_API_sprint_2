@@ -1,13 +1,15 @@
 from datetime import timedelta
 from http import HTTPStatus
 
+from flasgger import Swagger
+from flask import Flask, jsonify
+from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from sqlalchemy.future import select
 
-from db import init_db, db
 from api.v1 import v1
-from flask_jwt_extended import JWTManager
-from flask import Flask, jsonify
+from commands.admin import commands
+from db import init_db, db
 from settings import settings
 from services.redis import redis
 
@@ -25,6 +27,7 @@ app.config["JWT_SECRET_KEY"] = settings.JWT_SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = settings.POSTGRES_URL
 
 app.register_blueprint(v1)
+app.register_blueprint(commands)
 
 jwt = JWTManager(app)
 
@@ -32,6 +35,8 @@ jwt_redis_blocklist = redis
 
 migrate = Migrate(app, db)
 init_db(app)
+
+swag = Swagger(app, template_file="swagger/specs.yml")
 
 
 @jwt.token_in_blocklist_loader

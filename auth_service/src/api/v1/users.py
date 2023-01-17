@@ -10,11 +10,10 @@ from pydantic import BaseModel, EmailStr, validator
 from sqlalchemy.exc import SQLAlchemyError
 
 from models.users import AuthHistory, User
-from services.helpers import (add_auth_history,
-                                             check_passwords_match,
-                                             create_tokens, get_user_from_db,
-                                             hash_password, revoke_token,
-                                             set_user_refresh_token)
+from services.helpers import (add_auth_history, check_passwords_match,
+                              create_tokens, get_user_from_db,
+                              hash_password, revoke_token,
+                              set_user_refresh_token)
 from db import db
 
 auth = Blueprint('auth', __name__, url_prefix='/auth')
@@ -91,8 +90,7 @@ def login(form: UserFormDataModel):
                 access_token=access_token,
                 refresh_token=refresh_token
             )
-        else:
-            abort(HTTPStatus.UNAUTHORIZED, description='Passwords does not match')
+        abort(HTTPStatus.UNAUTHORIZED, description='Passwords does not match')
 
 
 @auth.route("/logout", methods=["DELETE"])
@@ -137,18 +135,20 @@ def refresh():
         identity = get_jwt_identity()
         access_token = create_access_token(identity=identity)
         return jsonify(access_token=access_token)
-    else:
-        abort(HTTPStatus.UNAUTHORIZED, description='Wrong refresh token')
+    abort(HTTPStatus.UNAUTHORIZED, description='Wrong refresh token')
 
 
 @auth.route('/users/<uuid:user_uuid>/auth-history', methods=['GET'])
 @jwt_required()
 def get_auth_history(user_uuid):
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 5, type=int)
     if current_user.id != user_uuid:
         abort(HTTPStatus.FORBIDDEN)
-    history = AuthHistory.query.filter_by(user_id=user_uuid).all()
+    data = db.session.query(AuthHistory).filter_by(
+        user_id=user_uuid).paginate(page=page, per_page=per_page)
     result = []
-    for row in history:
+    for row in data.items:
         result.append(
             {
                 'id': row.id,
@@ -157,5 +157,12 @@ def get_auth_history(user_uuid):
                 'created': row.created
              }
         )
+    meta = {
+        'page': data.page,
+        'pages': data.pages,
+        'total_objects': data.total,
+        'prev_page': data.prev_num,
+        'next_page': data.next_num
+    }
     return jsonify(message='User login history',
-                   user_login_history=result)
+                   user_login_history=result, meta=meta), HTTPStatus.OK
