@@ -42,7 +42,7 @@ swagger_config = {
     "specs": [
         {
             "endpoint": 'APISpecification',
-            "route": '/APISpecification',
+            "route": '/auth/APISpecification',
             "rule_filter": lambda rule: True,
             "model_filter": lambda tag: True,
         }
