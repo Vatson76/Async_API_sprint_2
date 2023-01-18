@@ -36,7 +36,22 @@ jwt_redis_blocklist = redis
 migrate = Migrate(app, db)
 init_db(app)
 
-swag = Swagger(app, template_file="swagger/specs.yml")
+swagger_config = {
+    "headers": [
+    ],
+    "specs": [
+        {
+            "endpoint": 'APISpecification',
+            "route": '/APISpecification',
+            "rule_filter": lambda rule: True,
+            "model_filter": lambda tag: True,
+        }
+    ],
+    "static_url_path": "/flasgger_static",
+    "specs_route": "/auth/apidocs",
+}
+
+swag = Swagger(app, config=swagger_config, template_file="swagger/specs.yml")
 
 
 @jwt.token_in_blocklist_loader
