@@ -17,8 +17,8 @@ class User(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True,
                    default=uuid.uuid4, unique=True, nullable=False)
     email = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(), nullable=False)
-    refresh_token = db.Column(db.String, unique=True, nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    refresh_token = db.Column(db.String(500), unique=True, nullable=False)
     registered_at = db.Column(DateTime, default=datetime.utcnow, nullable=False)
     is_admin = db.Column(db.Boolean, nullable=True, default=False)
     active = db.Column(db.Boolean, default=True, nullable=False)
@@ -43,9 +43,10 @@ class AuthHistory(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True,
                    default=uuid.uuid4,  nullable=False)
     user_id = db.Column(UUID(as_uuid=True),
-                        db.ForeignKey('auth.users.id'),
+                        db.ForeignKey('auth.users.id',
+                                      ondelete="CASCADE"),
                         nullable=False)
-    user_agent = db.Column(db.String, nullable=False)
+    user_agent = db.Column(db.String(255), nullable=False)
     ip_address = db.Column(db.String(100))
     device = db.Column(db.Text, primary_key=True)
     created = db.Column(db.DateTime, default=datetime.utcnow())

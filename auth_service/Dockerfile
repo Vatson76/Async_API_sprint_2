@@ -18,6 +18,7 @@ RUN chmod +x run_uwsgi.sh
 RUN  pip install --upgrade pip \
      && pip install -r requirements.txt --no-cache-dir
 
+COPY ./migrations ./migrations
 COPY ./src .
 
 USER dev

@@ -1,0 +1,466 @@
+swagger: "2.0"
+info:
+  title: Authentication API
+  description: API description in Markdown.
+  version: 1.0.0
+
+host: 127.0.0.1:5000
+basePath: /auth/api/v1
+
+schemes:
+  - http
+
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    name: Authorization
+    in: header
+    description: >-
+      Enter the token with the `Bearer: ` prefix, e.g. "Bearer abcde12345".
+
+paths:
+  /admin/roles:
+    get:
+      security:
+        - Bearer: [ ]
+      summary: Returns a list of roles.
+      description: Admin can get information about all roles.
+      tags:
+        - roles
+      produces:
+        - application/json
+      responses:
+        200:
+          description: An array of roles.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/RoleDetail'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /admin/roles/add:
+    post:
+      security:
+        - Bearer: [ ]
+      summary: Add role.
+      description: Admin can add role.
+      tags:
+        - roles
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: role
+          description: Add name(required) and description for role.
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+          required:
+            - name
+      responses:
+        200:
+          description: Role is successfully created.
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: Message
+                example: Role created.
+        400:
+          description: Missing name parameter in request.
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /admin/roles/{roleUuid}/edit:
+    patch:
+      security:
+        - Bearer: [ ]
+      summary: Edit role.
+      description: Admin can edit information of role.
+      tags:
+        - roles
+      produces:
+        - application/json
+      parameters:
+        - name: roleUuid
+          in: path
+          description: Role UUID
+          type: string
+          required: true
+        - in: body
+          name: role
+          description: Add name(required) and description for role.
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+          required:
+            - name
+      responses:
+        200:
+          description: Role edited.
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: Message
+                example: Role edited.
+        404:
+          description: Role with such uuid is not found.
+          schema:
+            $ref: '#/definitions/Error'
+  /admin/roles/{roleUuid}/delete:
+    delete:
+      security:
+        - Bearer: [ ]
+      summary: Delete role.
+      description: Admin can delete role.
+      tags:
+        - roles
+      produces:
+        - application/json
+      parameters:
+        - name: roleUuid
+          in: path
+          description: Role UUID
+          type: string
+          required: true
+      responses:
+        200:
+          description: Role deleted.
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: Message
+                example: Role deleted.
+        404:
+          description: Role with such uuid is not found.
+          schema:
+            $ref: '#/definitions/Error'
+  /admin/users/{userUuid}/roles:
+    get:
+      security:
+        - Bearer: [ ]
+      summary: Get user roles by user uuid.
+      description: Admin can get user's roles.
+      tags:
+        - roles
+      produces:
+        - application/json
+      parameters:
+        - name: userUuid
+          in: path
+          description: User UUID
+          type: string
+          required: true
+      responses:
+        200:
+          description: User roles.
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                name:
+                  type: string
+        404:
+          description: User with such uuid is not found.
+          schema:
+            $ref: '#/definitions/Error'
+  /admin/users/{userUuid}/add-role:
+    post:
+      security:
+        - Bearer: [ ]
+      summary: Add role for user.
+      description: Admin can add role for user.
+      tags:
+        - roles
+      produces:
+        - application/json
+      parameters:
+        - name: userUuid
+          in: path
+          description: User UUID
+          type: string
+          required: true
+        - in: body
+          name: role
+          description: Write existing role's name.
+          properties:
+            name:
+              type: string
+          required:
+            - name
+      responses:
+        200:
+          description: Role for User created.
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: Message
+                example: Role for User created.
+        404:
+          description: User with such uuid is not found.
+          schema:
+            $ref: '#/definitions/Error'
+
+  /admin/users/{userUuid}/delete-role:
+    delete:
+      security:
+        - Bearer: [ ]
+      summary: Delete user's role.
+      description: Admin can delete user's role.
+      tags:
+        - roles
+      produces:
+        - application/json
+      parameters:
+        - name: userUuid
+          in: path
+          description: User UUID
+          type: string
+          required: true
+        - in: body
+          name: role
+          description: Write existing role's name.
+          properties:
+            name:
+              type: string
+          required:
+            - name
+      responses:
+        200:
+          description: Role for User deleted.
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: Message
+                example: Role for User deleted.
+        404:
+          description: User with such uuid is not found.
+          schema:
+            $ref: '#/definitions/Error'
+  /auth/authenticate:
+    get:
+      security:
+        - Bearer: [ ]
+      summary: Return user's role.
+      description: Return role of current user.
+      tags:
+        - users
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Role of current user.
+  /auth/register:
+    post:
+      summary: Return access and refresh tokens.
+      description: Return access and refresh tokens after registration.
+      tags:
+        - users
+      produces:
+        - application/json
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - in: formData
+          name: email
+          type: string
+          description: A user's email.
+          required: true
+        - in: formData
+          name: password
+          type: string
+          description: A person's password.
+          required: true
+        - in: formData
+          name: password2
+          type: string
+          description: A dublicate of person's password.
+          required: true
+      responses:
+        200:
+          description: User is created
+          schema:
+            $ref: '#/definitions/Token'
+  /auth/login:
+    post:
+      summary: Returns access and refresh tokens.
+      description: Authenticate user and return access and refresh tokens.
+      tags:
+        - users
+      produces:
+        - application/json
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - in: formData
+          name: email
+          type: string
+          description: A user's email.
+          required: true
+        - in: formData
+          name: password
+          type: string
+          description: A person's password.
+          required: true
+      responses:
+        200:
+          description: Successful Entry
+          schema:
+            $ref: '#/definitions/Token'
+        404:
+          description: User does not exist.
+          schema:
+            $ref: '#/definitions/Error'
+  /auth/logout:
+    delete:
+      security:
+        - Bearer: [ ]
+      summary: Revoke access token.
+      description: Log out user and revoke his access token.
+      tags:
+        - users
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Token successfully revoked.
+  /auth/user/change:
+    post:
+      security:
+        - Bearer: [ ]
+      summary: Change user information(login, password).
+      description: Update user information and return access and refresh tokens.
+      tags:
+        - users
+      produces:
+        - application/json
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - in: formData
+          name: email
+          type: string
+          description: A user's email.
+        - in: formData
+          name: password
+          type: string
+          description: A user's password.
+      responses:
+        200:
+          description: User information is updated.
+          schema:
+            $ref: '#/definitions/Token'
+  /auth/refresh:
+    post:
+      summary: Refresh access token.
+      description: Refresh access token for current user.
+      tags:
+        - users
+      produces:
+        - application/json
+      responses:
+        200:
+          description: OK
+          schema:
+            type: object
+            properties:
+              access_token:
+                type: string
+                description: The access token.
+  /auth/users/{userUuid}/auth-history:
+    get:
+      security:
+        - Bearer: [ ]
+      summary: Returns user authentication history.
+      description: Optional extended description in Markdown.
+      tags:
+        - users
+      produces:
+        - application/json
+      parameters:
+        - name: userUuid
+          in: path
+          description: User UUID
+          type: string
+          required: true
+      responses:
+        200:
+          description: History of user authentications.
+          schema:
+            $ref: '#/definitions/AuthHistory'
+
+definitions:
+  Error:
+    type: object
+    properties:
+      message:
+        type: string
+      error:
+        type: string
+  Role:
+    type: object
+    properties:
+      name:
+        type: string
+      description:
+        type: string
+    required:
+      - name
+  Login:
+    type: object
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+      - email
+      - password
+  RoleDetail:
+    type: object
+    properties:
+      uuid:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+  AuthHistory:
+    type: object
+    properties:
+      id:
+        type: string
+      user_agent:
+        type: string
+      ip_address:
+        type: string
+      created:
+        type: date
+  Token:
+    type: object
+    properties:
+      access_token:
+        type: string
+        example: token
+      refresh_token:
+        type: string
+        example: resfresh_token

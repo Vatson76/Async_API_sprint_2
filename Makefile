@@ -13,3 +13,6 @@ locale:
 
 redis:
 	docker-compose exec redis redis-cli
+
+setup_auth:
+	docker-compose exec auth flask db upgrade
