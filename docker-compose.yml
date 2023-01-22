@@ -116,3 +116,7 @@ services:
       - auth
     ports:
       - "80:80"
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
