@@ -2,9 +2,10 @@ from datetime import timedelta
 from http import HTTPStatus
 
 from flasgger import Swagger
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
+from opentelemetry.sdk.resources import Resource
 from sqlalchemy.future import select
 
 from api.v1 import v1
@@ -13,10 +14,33 @@ from db import init_db, db
 from settings import settings
 from services.redis import redis
 
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
+from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+
 #Models import for creation in db
 from models.users import User
 
+
+def configure_tracer() -> None:
+    trace.set_tracer_provider(TracerProvider(resource=Resource.create(attributes={'service.name': 'auth'})))
+    trace.get_tracer_provider().add_span_processor(
+        BatchSpanProcessor(
+            JaegerExporter(
+                agent_host_name='jaeger',
+                agent_port=6831,
+            )
+        )
+    )
+    # Чтобы видеть трейсы в консоли
+    trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
+
+
+configure_tracer()
 app = Flask(__name__)
+FlaskInstrumentor().instrument_app(app)
 
 #Config
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=settings.ACCESS_TOKEN_EXPIRES_HOURS)
@@ -52,6 +76,17 @@ swagger_config = {
 }
 
 swag = Swagger(app, config=swagger_config, template_file="swagger/specs.yml")
+
+
+@app.before_request
+def before_request():
+    request_id = request.headers.get('X-Request-Id')
+    if not request_id:
+        raise RuntimeError('request id is required')
+    tracer = trace.get_tracer(__name__)
+    span = tracer.start_span('auth')
+    span.set_attribute('http.request_id', request_id)
+    span.end()
 
 
 @jwt.token_in_blocklist_loader
