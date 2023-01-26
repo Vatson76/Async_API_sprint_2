@@ -26,6 +26,7 @@ class Settings(BaseSettings):
 
     JWT_COOKIE_SECURE: bool = False
 
+    REQUEST_LIMIT_PER_MINUTE: int = 20
+
 
 settings = Settings()
-
