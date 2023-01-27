@@ -1,4 +1,3 @@
-from functools import lru_cache
 from http import HTTPStatus
 
 from aioredis import Redis
@@ -7,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.connections.elastic import get_es_connection
 from app.connections.redis import get_redis
+from app.dependencies import AllowedUser
 from app.serializers.query_params_classes import PaginationDataParams
 from models.film import Film, FilmDetailed
 from services.films_toolkit import FilmsToolkit
@@ -30,7 +30,8 @@ async def get_films_toolkit(
 async def get_all_filmworks(
     film_service: FilmsToolkit = Depends(get_films_toolkit),
     pagination_data: PaginationDataParams = Depends(PaginationDataParams),
-    genre: str = Query(None, description='Filter by genre uuid', alias='filter[genre]')
+    genre: str = Query(None, description='Filter by genre uuid', alias='filter[genre]'),
+    allowed: bool = Depends(AllowedUser('GUEST'))
 ) -> list[Film]:
     """Returns all filmworks."""
     films = await film_service.list(
@@ -51,9 +52,12 @@ async def get_all_filmworks(
 async def films_search(
     pagination_data: PaginationDataParams = Depends(PaginationDataParams),
     query: str = Query(None, description="Part of the filmwork's data"),
-    film_service: FilmsToolkit = Depends(get_films_toolkit)
+    film_service: FilmsToolkit = Depends(get_films_toolkit),
+    allowed: bool = Depends(AllowedUser('SUBSCRIBER'))
 ) -> list[Film]:
     """Returns list of filmworks by the parameter specified in the query."""
+    if not allowed:
+        raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail='Only subscribers can use these endpoint')
     films = await film_service.list(
         pagination_data=pagination_data,
         query=query
@@ -71,7 +75,8 @@ async def films_search(
 )
 async def film_details(
     film_id: str,
-    film_service: FilmsToolkit = Depends(get_films_toolkit)
+    film_service: FilmsToolkit = Depends(get_films_toolkit),
+    allowed: bool = Depends(AllowedUser('GUEST'))
 ) -> FilmDetailed:
     """Returns filmwork's detailed description."""
     film = await film_service.get(film_id)

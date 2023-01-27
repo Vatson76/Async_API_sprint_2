@@ -11,6 +11,7 @@ class DefaultRoleEnum(enum.Enum):
     guest = "guest"
     superuser = "superuser"
     staff = "staff"
+    subscriber = "subscriber"
 
 
 class Role(db.Model):
@@ -28,6 +29,7 @@ class Role(db.Model):
             DefaultRoleEnum.guest.value,
             DefaultRoleEnum.superuser.value,
             DefaultRoleEnum.staff.value,
+            DefaultRoleEnum.subscriber.value,
         )
 
 
