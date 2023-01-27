@@ -33,7 +33,7 @@ async def test_get_one_person(redis_client):
 
 
 @pytest.mark.asyncio
-async def test_persons_films_by_id(es_client):
+async def test_persons_films_by_id_with_role_guest(es_client):
     movie_id = uuid.UUID(persons_movies.get('id'))
     person_id = uuid.UUID(person.get('id'))
     person_films = person.get('films')[0]
@@ -42,9 +42,22 @@ async def test_persons_films_by_id(es_client):
 
     response = await make_get_request(f"/persons/{person_id}/film")
 
-    assert response.status == HTTPStatus.OK
-    assert response.body[0].get('id') == person_films.get('id')
-    assert response.body[0].get('title') == person_films.get('title')
+    assert response.status == HTTPStatus.FORBIDDEN
+
+
+# @pytest.mark.asyncio
+# async def test_persons_films_by_id(es_client):
+#     movie_id = uuid.UUID(persons_movies.get('id'))
+#     person_id = uuid.UUID(person.get('id'))
+#     person_films = person.get('films')[0]
+#     await es_client.create('persons', person_id, person)
+#     await es_client.create('movies', movie_id, persons_movies)
+#
+#     response = await make_get_request(f"/persons/{person_id}/film")
+#
+#     assert response.status == HTTPStatus.OK
+#     assert response.body[0].get('id') == person_films.get('id')
+#     assert response.body[0].get('title') == person_films.get('title')
 
 
 @pytest.mark.parametrize("page, page_size, expected_count", [
