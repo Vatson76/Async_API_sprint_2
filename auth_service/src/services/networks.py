@@ -1,8 +1,15 @@
+import enum
+
 from app import oauth
 from db import db
 from models.users import SocialAccount, User
 from settings import oauth_settings
 from services.helpers import (create_tokens, get_user_from_db, hash_password)
+
+
+class OAuthServices(enum.Enum):
+    YANDEX = 'yandex'
+    GOOGLE = 'google'
 
 
 def get_or_create_social_account(social_id: str, social_name: str, email: str):

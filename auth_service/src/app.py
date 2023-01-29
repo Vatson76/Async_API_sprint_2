@@ -6,39 +6,23 @@ from flasgger import Swagger
 from flask import Flask, jsonify, request
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
-from opentelemetry.sdk.resources import Resource
 from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
-from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+
 from sqlalchemy.future import select
 
 from commands.admin import commands
 from db import init_db, db
 from settings import settings
 from services.redis import redis
+from services.tracer import configure_tracer
 
 
 #Models import for creation in db
 from models.users import User
 
-
-def configure_tracer() -> None:
-    trace.set_tracer_provider(TracerProvider(resource=Resource.create(attributes={'service.name': 'auth'})))
-    trace.get_tracer_provider().add_span_processor(
-        BatchSpanProcessor(
-            JaegerExporter(
-                agent_host_name='jaeger',
-                agent_port=6831,
-            )
-        )
-    )
-    # Чтобы видеть трейсы в консоли
-    trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
-
-
-configure_tracer()
+if settings.TRACER_ENABLED:
+    configure_tracer()
 app = Flask(__name__)
 FlaskInstrumentor().instrument_app(app)
 
@@ -82,15 +66,16 @@ swagger_config = {
 swag = Swagger(app, config=swagger_config, template_file="swagger/specs.yml")
 
 
-@app.before_request
-def before_request():
-    request_id = request.headers.get('X-Request-Id')
-    if not request_id:
-        raise RuntimeError('request id is required')
-    tracer = trace.get_tracer(__name__)
-    span = tracer.start_span('auth')
-    span.set_attribute('http.request_id', request_id)
-    span.end()
+if settings.TRACER_ENABLED:
+    @app.before_request
+    def before_request():
+        request_id = request.headers.get('X-Request-Id')
+        if not request_id:
+            raise RuntimeError('request id is required')
+        tracer = trace.get_tracer(__name__)
+        span = tracer.start_span('auth')
+        span.set_attribute('http.request_id', request_id)
+        span.end()
 
 
 @jwt.token_in_blocklist_loader
@@ -106,27 +91,27 @@ def user_lookup_callback(_jwt_header, jwt_data):
     return db.session.execute(select(User).where(User.email == identity)).scalars().one()
 
 
-@app.errorhandler(422)
+@app.errorhandler(HTTPStatus.UNPROCESSABLE_ENTITY)
 def resource_not_found(error):
     return jsonify(error=str(error)), HTTPStatus.UNPROCESSABLE_ENTITY
 
 
-@app.errorhandler(404)
+@app.errorhandler(HTTPStatus.NOT_FOUND)
 def not_found(error):
     return jsonify(error=str(error)), HTTPStatus.NOT_FOUND
 
 
-@app.errorhandler(400)
+@app.errorhandler(HTTPStatus.BAD_REQUEST)
 def bad_request(error):
     return jsonify(error=str(error)), HTTPStatus.BAD_REQUEST
 
 
-@app.errorhandler(403)
+@app.errorhandler(HTTPStatus.FORBIDDEN)
 def forbidden(error):
     return jsonify(error=str(error)), HTTPStatus.FORBIDDEN
 
 
-@app.errorhandler(405)
+@app.errorhandler(HTTPStatus.METHOD_NOT_ALLOWED)
 def method_not_allowed(error):
     return jsonify(error=str(error)), HTTPStatus.METHOD_NOT_ALLOWED
 
