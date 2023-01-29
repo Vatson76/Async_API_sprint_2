@@ -31,5 +31,7 @@ class Settings(BaseSettings):
 
     LOG_LEVEL: str = 'DEBUG'
 
+    NGINX_URL: str = 'http://127.0.0.1:80'
+
 
 settings = Settings()

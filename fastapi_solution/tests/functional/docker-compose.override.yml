@@ -7,7 +7,7 @@ services:
 
   elastic_test:
     ports:
-      - "9201:9200"
+      - "9202:9200"
 
   redis_test:
     ports:

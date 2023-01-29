@@ -1,6 +1,7 @@
 # import logging
 
 import aioredis
+import uvicorn
 # import uvicorn
 from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
@@ -45,6 +46,4 @@ app.include_router(router, prefix='/api/v1')
 #         'main:app',
 #         host='0.0.0.0',
 #         port=8000,
-#         log_config=LOGGING,
-#         log_level=getattr(logging, settings.LOG_LEVEL),
 #     )
