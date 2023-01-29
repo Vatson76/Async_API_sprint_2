@@ -50,3 +50,26 @@ class AuthHistory(db.Model):
     ip_address = db.Column(db.String(100))
     device = db.Column(db.Text, primary_key=True)
     created = db.Column(db.DateTime, default=datetime.utcnow())
+
+
+class SocialAccount(db.Model):
+    __tablename__ = 'social_account'
+    __table_args__ = (
+        UniqueConstraint('social_id', 'social_name', name='social_pk'),
+        {"schema": "auth"}
+    )
+
+    id = db.Column(UUID(as_uuid=True), primary_key=True,
+                   default=uuid.uuid4,  nullable=False)
+    user_id = db.Column(UUID(as_uuid=True),
+                        db.ForeignKey('auth.users.id',
+                                      ondelete="CASCADE"),
+                        nullable=False)
+    user = db.relationship(User,
+                           backref=db.backref('social_accounts', lazy=True))
+
+    social_id = db.Column(db.Text, nullable=False)
+    social_name = db.Column(db.Text, nullable=False)
+
+    def __repr__(self):
+        return f'<SocialAccount {self.social_name}:{self.user_id}>'

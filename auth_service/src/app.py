@@ -1,24 +1,24 @@
 from datetime import timedelta
 from http import HTTPStatus
 
+from authlib.integrations.flask_client import OAuth
 from flasgger import Swagger
 from flask import Flask, jsonify, request
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from opentelemetry.sdk.resources import Resource
-from sqlalchemy.future import select
-
-from api.v1 import v1
-from commands.admin import commands
-from db import init_db, db
-from settings import settings
-from services.redis import redis
-
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+from sqlalchemy.future import select
+
+from commands.admin import commands
+from db import init_db, db
+from settings import settings
+from services.redis import redis
+
 
 #Models import for creation in db
 from models.users import User
@@ -49,8 +49,9 @@ app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies"]
 app.config["JWT_COOKIE_SECURE"] = settings.JWT_COOKIE_SECURE
 app.config["JWT_SECRET_KEY"] = settings.JWT_SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = settings.POSTGRES_URL
+app.config["SECRET_KEY"] = settings.SECRET_KEY
 
-app.register_blueprint(v1)
+
 app.register_blueprint(commands)
 
 jwt = JWTManager(app)
@@ -59,6 +60,9 @@ jwt_redis_blocklist = redis
 
 migrate = Migrate(app, db)
 init_db(app)
+
+oauth = OAuth(app)
+oauth.init_app(app)
 
 swagger_config = {
     "headers": [
@@ -128,4 +132,6 @@ def method_not_allowed(error):
 
 
 if __name__ == '__main__':
+    from api.v1 import v1
+    app.register_blueprint(v1)
     app.run()
