@@ -7,10 +7,6 @@ from services.helpers import (create_tokens, get_user_from_db, hash_password)
 
 def get_or_create_social_account(social_id: str, social_name: str, email: str):
     user = get_user_from_db(email=email)
-    social_account = SocialAccount.query.filter_by(
-        social_id=social_id,
-        social_name=social_name,
-    ).first()
     access_token, refresh_token = create_tokens(identity=email)
     if not user:
         user = User(
@@ -20,6 +16,10 @@ def get_or_create_social_account(social_id: str, social_name: str, email: str):
             )
         db.session.add(user)
         db.session.commit()
+    social_account = SocialAccount.query.filter_by(
+        social_id=social_id,
+        social_name=social_name,
+    ).first()
     if not social_account:
         social_account = SocialAccount(
             social_id=social_id,
