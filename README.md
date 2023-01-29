@@ -46,17 +46,13 @@ make setup_auth
 
 https://github.com/Vatson76 - тимлид
 
-- Функциональные тесты. film
-- Функциональные тесты. search
-- SOLID
-- Reviews
+- Связывание сервисов
+- Трассировка
 
 https://github.com/valerycode
 
-- Функциональные тесты. person
-- Функциональные тесты. genre
-- SOLID
-- Reviews
+- OAuth
+- rate limiter
 
 https://github.com/KaterinaSolovyeva (Закончила обучение)
 

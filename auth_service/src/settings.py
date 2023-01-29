@@ -28,5 +28,7 @@ class Settings(BaseSettings):
 
     REQUEST_LIMIT_PER_MINUTE: int = 20
 
+    SECRET_KEY: str = 'not secret at all'
+
 
 settings = Settings()
