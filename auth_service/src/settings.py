@@ -28,5 +28,24 @@ class Settings(BaseSettings):
 
     REQUEST_LIMIT_PER_MINUTE: int = 20
 
+    SECRET_KEY: str = Field("secretkey", env="SECRET_KEY")
+
+
+class OAuthSettings(BaseSettings):
+    GOOGLE_CLIENT_ID: str = Field(..., env="GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET: str = Field(..., env="GOOGLE_CLIENT_SECRET")
+    GOOGLE_SERVER_METADATA_URL: str = Field(..., env="GOOGLE_SERVER_METADATA_URL")
+    GOOGLE_PROVIDER = "google"
+    YANDEX_ID: str = Field(..., env="YANDEX_ID")
+    YANDEX_SECRET: str = Field(..., env="YANDEX_SECRET")
+    YANDEX_PROVIDER = "yandex"
+    YANDEX_AUTHORIZE_URL: str = Field(..., env="YANDEX_AUTHORIZE_URL")
+    YANDEX_TOKEN_URL: str = Field(..., env="YANDEX_TOKEN_URL")
+    YANDEX_PROFILE_URL: str = Field(..., env="YANDEX_PROFILE_URL")
+
+    class Config:
+        env_file = '.env'
+
 
 settings = Settings()
+oauth_settings = OAuthSettings()
