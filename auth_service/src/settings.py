@@ -12,19 +12,6 @@ class Database(BaseSettings):
         env_prefix = 'postgres_'
 
 
-class OAuthSettings(BaseSettings):
-    YANDEX_PROVIDER: str = 'https://oauth.yandex.ru/'
-    YANDEX_ID: str = 'APPLICATION_ID'
-    YANDEX_SECRET: str = 'APPLICATION_PASSWORD'
-    YANDEX_AUTHORIZE_URL: str = ''
-    YANDEX_TOKEN_URL: str = ''
-
-    GOOGLE_PROVIDER: str = 'https://accounts.google.com/o/oauth2/v2/auth'
-    GOOGLE_CLIENT_ID: str = 'APPLICATION_ID'
-    GOOGLE_CLIENT_SECRET: str = 'APPLICATION_PASSWORD'
-    GOOGLE_SERVER_METADATA_URL: str = ''
-
-
 class Settings(BaseSettings):
     JWT_SECRET_KEY: str = 'top secret'
     db = Database()
@@ -43,7 +30,7 @@ class Settings(BaseSettings):
 
     SECRET_KEY: str = Field("secretkey", env="SECRET_KEY")
 
-	TRACER_ENABLED: bool = False
+    TRACER_ENABLED: bool = False
     TRACER_HOST: str = 'jaeger'
     TRACER_PORT: int = 6831
 
